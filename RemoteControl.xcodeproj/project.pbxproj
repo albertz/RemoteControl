@@ -1,0 +1,476 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		235B53F2132E888000E87772 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F1132E888000E87772 /* UIKit.framework */; };
+		235B53F4132E888000E87772 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F3132E888000E87772 /* Foundation.framework */; };
+		235B53F6132E888000E87772 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F5132E888000E87772 /* CoreGraphics.framework */; };
+		235B53FC132E888000E87772 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 235B53FA132E888000E87772 /* InfoPlist.strings */; };
+		235B53FF132E888000E87772 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B53FE132E888000E87772 /* main.m */; };
+		235B5402132E888000E87772 /* RemoteControlAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5401132E888000E87772 /* RemoteControlAppDelegate.m */; };
+		235B5405132E888000E87772 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 235B5403132E888000E87772 /* MainWindow.xib */; };
+		235B5408132E888000E87772 /* FirstViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5407132E888000E87772 /* FirstViewController.m */; };
+		235B540B132E888000E87772 /* SecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B540A132E888000E87772 /* SecondViewController.m */; };
+		235B540E132E888000E87772 /* FirstView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 235B540C132E888000E87772 /* FirstView.xib */; };
+		235B5411132E888100E87772 /* SecondView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 235B540F132E888100E87772 /* SecondView.xib */; };
+		235B5418132E888100E87772 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F1132E888000E87772 /* UIKit.framework */; };
+		235B5419132E888100E87772 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F3132E888000E87772 /* Foundation.framework */; };
+		235B541A132E888100E87772 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F5132E888000E87772 /* CoreGraphics.framework */; };
+		235B5422132E888100E87772 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 235B5420132E888100E87772 /* InfoPlist.strings */; };
+		235B5425132E888100E87772 /* RemoteControlTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 235B5424132E888100E87772 /* RemoteControlTests.h */; };
+		235B5427132E888100E87772 /* RemoteControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5426132E888100E87772 /* RemoteControlTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		235B541B132E888100E87772 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 235B53E4132E888000E87772 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 235B53EC132E888000E87772;
+			remoteInfo = RemoteControl;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		235B53ED132E888000E87772 /* RemoteControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemoteControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		235B53F1132E888000E87772 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		235B53F3132E888000E87772 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		235B53F5132E888000E87772 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		235B53F9132E888000E87772 /* RemoteControl-Info.plist */ = {isa = PBXFileReference; path = "RemoteControl-Info.plist"; sourceTree = "<group>"; };
+		235B53FB132E888000E87772 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		235B53FD132E888000E87772 /* RemoteControl-Prefix.pch */ = {isa = PBXFileReference; path = "RemoteControl-Prefix.pch"; sourceTree = "<group>"; };
+		235B53FE132E888000E87772 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		235B5400132E888000E87772 /* RemoteControlAppDelegate.h */ = {isa = PBXFileReference; path = RemoteControlAppDelegate.h; sourceTree = "<group>"; };
+		235B5401132E888000E87772 /* RemoteControlAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RemoteControlAppDelegate.m; sourceTree = "<group>"; };
+		235B5404132E888000E87772 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
+		235B5406132E888000E87772 /* FirstViewController.h */ = {isa = PBXFileReference; path = FirstViewController.h; sourceTree = "<group>"; };
+		235B5407132E888000E87772 /* FirstViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FirstViewController.m; sourceTree = "<group>"; };
+		235B5409132E888000E87772 /* SecondViewController.h */ = {isa = PBXFileReference; path = SecondViewController.h; sourceTree = "<group>"; };
+		235B540A132E888000E87772 /* SecondViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SecondViewController.m; sourceTree = "<group>"; };
+		235B540D132E888000E87772 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/FirstView.xib; sourceTree = "<group>"; };
+		235B5410132E888100E87772 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/SecondView.xib; sourceTree = "<group>"; };
+		235B5417132E888100E87772 /* RemoteControlTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemoteControlTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		235B541F132E888100E87772 /* RemoteControlTests-Info.plist */ = {isa = PBXFileReference; path = "RemoteControlTests-Info.plist"; sourceTree = "<group>"; };
+		235B5421132E888100E87772 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		235B5423132E888100E87772 /* RemoteControlTests-Prefix.pch */ = {isa = PBXFileReference; path = "RemoteControlTests-Prefix.pch"; sourceTree = "<group>"; };
+		235B5424132E888100E87772 /* RemoteControlTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteControlTests.h; sourceTree = "<group>"; };
+		235B5426132E888100E87772 /* RemoteControlTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RemoteControlTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		235B53EA132E888000E87772 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B53F2132E888000E87772 /* UIKit.framework in Frameworks */,
+				235B53F4132E888000E87772 /* Foundation.framework in Frameworks */,
+				235B53F6132E888000E87772 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		235B5413132E888100E87772 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B5418132E888100E87772 /* UIKit.framework in Frameworks */,
+				235B5419132E888100E87772 /* Foundation.framework in Frameworks */,
+				235B541A132E888100E87772 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		235B53E2132E888000E87772 = {
+			isa = PBXGroup;
+			children = (
+				235B53F7132E888000E87772 /* RemoteControl */,
+				235B541D132E888100E87772 /* RemoteControlTests */,
+				235B53F0132E888000E87772 /* Frameworks */,
+				235B53EE132E888000E87772 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		235B53EE132E888000E87772 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				235B53ED132E888000E87772 /* RemoteControl.app */,
+				235B5417132E888100E87772 /* RemoteControlTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		235B53F0132E888000E87772 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				235B53F1132E888000E87772 /* UIKit.framework */,
+				235B53F3132E888000E87772 /* Foundation.framework */,
+				235B53F5132E888000E87772 /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		235B53F7132E888000E87772 /* RemoteControl */ = {
+			isa = PBXGroup;
+			children = (
+				235B5400132E888000E87772 /* RemoteControlAppDelegate.h */,
+				235B5401132E888000E87772 /* RemoteControlAppDelegate.m */,
+				235B5403132E888000E87772 /* MainWindow.xib */,
+				235B5406132E888000E87772 /* FirstViewController.h */,
+				235B5407132E888000E87772 /* FirstViewController.m */,
+				235B5409132E888000E87772 /* SecondViewController.h */,
+				235B540A132E888000E87772 /* SecondViewController.m */,
+				235B540C132E888000E87772 /* FirstView.xib */,
+				235B540F132E888100E87772 /* SecondView.xib */,
+				235B53F8132E888000E87772 /* Supporting Files */,
+			);
+			path = RemoteControl;
+			sourceTree = "<group>";
+		};
+		235B53F8132E888000E87772 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				235B53F9132E888000E87772 /* RemoteControl-Info.plist */,
+				235B53FA132E888000E87772 /* InfoPlist.strings */,
+				235B53FD132E888000E87772 /* RemoteControl-Prefix.pch */,
+				235B53FE132E888000E87772 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		235B541D132E888100E87772 /* RemoteControlTests */ = {
+			isa = PBXGroup;
+			children = (
+				235B5424132E888100E87772 /* RemoteControlTests.h */,
+				235B5426132E888100E87772 /* RemoteControlTests.m */,
+				235B541E132E888100E87772 /* Supporting Files */,
+			);
+			path = RemoteControlTests;
+			sourceTree = "<group>";
+		};
+		235B541E132E888100E87772 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				235B541F132E888100E87772 /* RemoteControlTests-Info.plist */,
+				235B5420132E888100E87772 /* InfoPlist.strings */,
+				235B5423132E888100E87772 /* RemoteControlTests-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		235B53EC132E888000E87772 /* RemoteControl */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 235B542A132E888100E87772 /* Build configuration list for PBXNativeTarget "RemoteControl" */;
+			buildPhases = (
+				235B53E9132E888000E87772 /* Sources */,
+				235B53EA132E888000E87772 /* Frameworks */,
+				235B53EB132E888000E87772 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RemoteControl;
+			productName = RemoteControl;
+			productReference = 235B53ED132E888000E87772 /* RemoteControl.app */;
+			productType = "com.apple.product-type.application";
+		};
+		235B5416132E888100E87772 /* RemoteControlTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 235B542D132E888100E87772 /* Build configuration list for PBXNativeTarget "RemoteControlTests" */;
+			buildPhases = (
+				235B5412132E888100E87772 /* Sources */,
+				235B5413132E888100E87772 /* Frameworks */,
+				235B5414132E888100E87772 /* Resources */,
+				235B5415132E888100E87772 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				235B541C132E888100E87772 /* PBXTargetDependency */,
+			);
+			name = RemoteControlTests;
+			productName = RemoteControlTests;
+			productReference = 235B5417132E888100E87772 /* RemoteControlTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		235B53E4132E888000E87772 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 235B53E7132E888000E87772 /* Build configuration list for PBXProject "RemoteControl" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 235B53E2132E888000E87772;
+			productRefGroup = 235B53EE132E888000E87772 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				235B53EC132E888000E87772 /* RemoteControl */,
+				235B5416132E888100E87772 /* RemoteControlTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		235B53EB132E888000E87772 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B53FC132E888000E87772 /* InfoPlist.strings in Resources */,
+				235B5405132E888000E87772 /* MainWindow.xib in Resources */,
+				235B540E132E888000E87772 /* FirstView.xib in Resources */,
+				235B5411132E888100E87772 /* SecondView.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		235B5414132E888100E87772 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B5422132E888100E87772 /* InfoPlist.strings in Resources */,
+				235B5425132E888100E87772 /* RemoteControlTests.h in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		235B5415132E888100E87772 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		235B53E9132E888000E87772 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B53FF132E888000E87772 /* main.m in Sources */,
+				235B5402132E888000E87772 /* RemoteControlAppDelegate.m in Sources */,
+				235B5408132E888000E87772 /* FirstViewController.m in Sources */,
+				235B540B132E888000E87772 /* SecondViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		235B5412132E888100E87772 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B5427132E888100E87772 /* RemoteControlTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		235B541C132E888100E87772 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 235B53EC132E888000E87772 /* RemoteControl */;
+			targetProxy = 235B541B132E888100E87772 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		235B53FA132E888000E87772 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				235B53FB132E888000E87772 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		235B5403132E888000E87772 /* MainWindow.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				235B5404132E888000E87772 /* en */,
+			);
+			name = MainWindow.xib;
+			sourceTree = "<group>";
+		};
+		235B540C132E888000E87772 /* FirstView.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				235B540D132E888000E87772 /* en */,
+			);
+			name = FirstView.xib;
+			sourceTree = "<group>";
+		};
+		235B540F132E888100E87772 /* SecondView.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				235B5410132E888100E87772 /* en */,
+			);
+			name = SecondView.xib;
+			sourceTree = "<group>";
+		};
+		235B5420132E888100E87772 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				235B5421132E888100E87772 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		235B5428132E888100E87772 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		235B5429132E888100E87772 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		235B542B132E888100E87772 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RemoteControl/RemoteControl-Prefix.pch";
+				INFOPLIST_FILE = "RemoteControl/RemoteControl-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		235B542C132E888100E87772 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RemoteControl/RemoteControl-Prefix.pch";
+				INFOPLIST_FILE = "RemoteControl/RemoteControl-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		235B542E132E888100E87772 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/RemoteControl.app/RemoteControl";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RemoteControlTests/RemoteControlTests-Prefix.pch";
+				INFOPLIST_FILE = "RemoteControlTests/RemoteControlTests-Info.plist";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SenTestingKit,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		235B542F132E888100E87772 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/RemoteControl.app/RemoteControl";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RemoteControlTests/RemoteControlTests-Prefix.pch";
+				INFOPLIST_FILE = "RemoteControlTests/RemoteControlTests-Info.plist";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SenTestingKit,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		235B53E7132E888000E87772 /* Build configuration list for PBXProject "RemoteControl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				235B5428132E888100E87772 /* Debug */,
+				235B5429132E888100E87772 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		235B542A132E888100E87772 /* Build configuration list for PBXNativeTarget "RemoteControl" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				235B542B132E888100E87772 /* Debug */,
+				235B542C132E888100E87772 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		235B542D132E888100E87772 /* Build configuration list for PBXNativeTarget "RemoteControlTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				235B542E132E888100E87772 /* Debug */,
+				235B542F132E888100E87772 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 235B53E4132E888000E87772 /* Project object */;
+}

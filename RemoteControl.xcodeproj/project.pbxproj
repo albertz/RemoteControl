@@ -24,6 +24,8 @@
 		235B5422132E888100E87772 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 235B5420132E888100E87772 /* InfoPlist.strings */; };
 		235B5425132E888100E87772 /* RemoteControlTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 235B5424132E888100E87772 /* RemoteControlTests.h */; };
 		235B5427132E888100E87772 /* RemoteControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5426132E888100E87772 /* RemoteControlTests.m */; };
+		235B548B13362D7900E87772 /* Connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 235B548913362D7900E87772 /* Connection.cpp */; };
+		235B548C13362D7900E87772 /* Connection.h in Headers */ = {isa = PBXBuildFile; fileRef = 235B548A13362D7900E87772 /* Connection.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,9 @@
 		235B5423132E888100E87772 /* RemoteControlTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RemoteControlTests-Prefix.pch"; sourceTree = "<group>"; };
 		235B5424132E888100E87772 /* RemoteControlTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RemoteControlTests.h; sourceTree = "<group>"; };
 		235B5426132E888100E87772 /* RemoteControlTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RemoteControlTests.m; sourceTree = "<group>"; };
+		235B5467133620DB00E87772 /* common.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = common.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		235B548913362D7900E87772 /* Connection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Connection.cpp; sourceTree = "<group>"; };
+		235B548A13362D7900E87772 /* Connection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Connection.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,12 +88,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		235B5464133620DB00E87772 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		235B53E2132E888000E87772 = {
 			isa = PBXGroup;
 			children = (
+				235B548713362D7900E87772 /* src */,
 				235B53F7132E888000E87772 /* RemoteControl */,
 				235B541D132E888100E87772 /* RemoteControlTests */,
 				235B53F0132E888000E87772 /* Frameworks */,
@@ -101,6 +114,7 @@
 			children = (
 				235B53ED132E888000E87772 /* RemoteControl.app */,
 				235B5417132E888100E87772 /* RemoteControlTests.octest */,
+				235B5467133620DB00E87772 /* common.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -163,7 +177,35 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		235B548713362D7900E87772 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				235B548813362D7900E87772 /* common */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		235B548813362D7900E87772 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				235B548913362D7900E87772 /* Connection.cpp */,
+				235B548A13362D7900E87772 /* Connection.h */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		235B5465133620DB00E87772 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B548C13362D7900E87772 /* Connection.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		235B53EC132E888000E87772 /* RemoteControl */ = {
@@ -202,6 +244,23 @@
 			productReference = 235B5417132E888100E87772 /* RemoteControlTests.octest */;
 			productType = "com.apple.product-type.bundle";
 		};
+		235B5466133620DB00E87772 /* common */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 235B5472133620DB00E87772 /* Build configuration list for PBXNativeTarget "common" */;
+			buildPhases = (
+				235B5463133620DB00E87772 /* Sources */,
+				235B5464133620DB00E87772 /* Frameworks */,
+				235B5465133620DB00E87772 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = common;
+			productName = common;
+			productReference = 235B5467133620DB00E87772 /* common.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -221,6 +280,7 @@
 			targets = (
 				235B53EC132E888000E87772 /* RemoteControl */,
 				235B5416132E888100E87772 /* RemoteControlTests */,
+				235B5466133620DB00E87772 /* common */,
 			);
 		};
 /* End PBXProject section */
@@ -281,6 +341,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				235B5427132E888100E87772 /* RemoteControlTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		235B5463133620DB00E87772 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				235B548B13362D7900E87772 /* Connection.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -442,6 +510,39 @@
 			};
 			name = Release;
 		};
+		235B5473133620DB00E87772 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		235B5474133620DB00E87772 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -461,12 +562,22 @@
 				235B542C132E888100E87772 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		235B542D132E888100E87772 /* Build configuration list for PBXNativeTarget "RemoteControlTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				235B542E132E888100E87772 /* Debug */,
 				235B542F132E888100E87772 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		235B5472133620DB00E87772 /* Build configuration list for PBXNativeTarget "common" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				235B5473133620DB00E87772 /* Debug */,
+				235B5474133620DB00E87772 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};

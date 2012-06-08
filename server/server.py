@@ -12,6 +12,7 @@ import ast, subprocess
 import re
 
 progname = "RemoteEverywhere"
+appid = "com.albertzeyer." + progname
 mydir = os.path.dirname(__file__) or os.getcwd()
 userdir = "~/." + progname
 
@@ -41,7 +42,7 @@ import easycfg
 easycfg.setup(globals(), "knownClientDevices")
 
 import fscomm
-fscomm.setup("~/Dropbox")
+fscomm.setup(appid)
 
 def main():
 	while True:

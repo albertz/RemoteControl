@@ -9,5 +9,9 @@
 #ifndef __RemoteControl__Connection__
 #define __RemoteControl__Connection__
 
+struct Connection {
+	
+};
+
 
 #endif

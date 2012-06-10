@@ -171,19 +171,35 @@ def strDecode(stream):
 # Lists. Amounts of items, each item as variant.
 
 def listEncode(l):
-	pass
-
+	bin = intEncode(len(l))
+	for item in l:
+		bin += varEncode(item)
+	return bin	
 
 def listDecode(stream):
-	pass
+	listLen = intDecode(stream)
+	l = [None]*listLen
+	for i in range(listLen):
+		l[i] = varDecode(stream)
+	return l	
 
 # Dicts. Amounts of items, each item as 2 variants (key+value).
 
 def dictEncode(d):
-	pass
+	bin = intEncode(len(l))
+	for key,value in d.items():
+		bin += varEncode(key)
+		bin += varEncode(value)
+	return bin
 
-def dictDecode(d):
-	pass
+def dictDecode(stream):
+	dictLen = intDecode(stream)
+	d = {}
+	for i in range(dictLen):
+		key = varDecode(stream)
+		value = varDecode(stream)
+		d[key] = value
+	return d
 
 # Variants. Bytesize + type-ID-byte + data.
 # Type-IDs:
@@ -209,7 +225,7 @@ def varEncode(v):
 		return prefixWithSize(array("B", (5,)) + floatEncode(v))
 	if isinstance(v, (str,unicode,array)):
 		return prefixWithSize(array("B", (6,)) + strEncode(v))
-	if isinstance(v, list):
+	if isinstance(v, (list,tuple)):
 		data = listEncode(v)
 		typeEncoded = array("B", (1,))
 		lenEncoded = intEncode(len(data) + 1)

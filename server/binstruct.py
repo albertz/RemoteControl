@@ -24,11 +24,12 @@
 
 # ------- This format. ------------
 
+FILESIGNATURE = "BINSTRUCT.1\x00"
 class FormatError(Exception): pass
 
 # Bool. Byte \x00 or \x01.
 
-def boolEncode(b): return "\x01" if b else "\x00"
+def boolEncode(b): return array("B", (b,))
 def boolDecode(stream): return bool(ord(stream.read(1)))
 
 # Integers. Use EliasGamma to decode the byte size
@@ -186,7 +187,7 @@ def listDecode(stream):
 # Dicts. Amounts of items, each item as 2 variants (key+value).
 
 def dictEncode(d):
-	bin = intEncode(len(l))
+	bin = intEncode(len(d))
 	for key,value in d.items():
 		bin += varEncode(key)
 		bin += varEncode(value)
@@ -239,6 +240,8 @@ def varEncode(v):
 	assert False
 
 def varDecode(stream):
+	if isinstance(stream, array): stream = stream.tostring()
+	if isinstance(stream, str): stream = StringIO(stream)
 	varLen = intDecode(stream)
 	if varLen < 0: raise FormatError("varLen < 0")
 	if varLen == 0: return None
@@ -251,4 +254,15 @@ def varDecode(stream):
 	if type == 6: return strDecode(stream)
 	raise FormatError("type %i unknown" % type)
 
+# File IO
+
+def write(file, v):
+	if isinstance(file, (str,unicode)): file = open(file, "wb")
+	file.write(FILESIGNATURE)
+	file.write(varEncode(v))
 	
+def read(file):
+	if isinstance(file, (str,unicode)): file = open(file, "b")
+	sig = file.read(len(FILESIGNATURE))
+	if sig != FILESIGNATURE: raise FormatError("file signature wrong")
+	return varDecode(file)

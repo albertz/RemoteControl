@@ -44,13 +44,15 @@ easycfg.setup(globals(), "knownClientDevices")
 import fscomm
 fscomm.setup(appid)
 
+import gui
+
 def main():
 	while True:
 
 		for d in fscomm.devices():
-			if d.type != "client": continue
+			if d.type != "RemoteControlClient": continue
 			if d.publicKey not in knownClientDevices:
-				answer = ask(
+				answer = gui.ask(
 					"A new device was found:\n\n" +
 					d.user_string() +
 					"\nDo you want to allow full access on your computer?\n" +

@@ -261,8 +261,9 @@ def varDecode(stream):
 def write(file, v):
 	if isinstance(file, (str,unicode)): file = open(file, "wb")
 	file.write(FILESIGNATURE)
-	file.write(varEncode(v))
-	
+	file.write(varEncode(v).tostring())
+	return file
+
 def read(file):
 	if isinstance(file, (str,unicode)): file = open(file, "b")
 	sig = file.read(len(FILESIGNATURE))
@@ -282,73 +283,84 @@ def genkeypair():
 	privkey = key.exportKey("DER")
 	return (pubkey,privkey)
 	
-def encrypt(v, rsapubkey):
+def encrypt(v, encrypt_rsapubkey, sign_rsaprivkey=None):
 	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsapubkey)
 	from Crypto.Cipher import PKCS1_OAEP
-	rsa = PKCS1_OAEP.new(rsakey)
-	from array import array
+	from Crypto.Cipher import AES
+	from Crypto.Signature import PKCS1_PSS
+	from Crypto.Hash import SHA512
+	encrypt_rsapubkey = RSA.importKey(encrypt_rsapubkey)
+	rsa = PKCS1_OAEP.new(encrypt_rsapubkey)
 	aeskey = randomString(32)
 	iv = randomString(16)
-	from Crypto.Cipher import AES
 	aes = AES.new(aeskey, AES.MODE_CBC, iv)
-	data = varEncode(v)
-	data += array("B", (0,) * (-len(data) % 16))
+	data = write(StringIO(), v).getvalue()
+	data += "\x00" * (-len(data) % 16)
 	out = strEncode(rsa.encrypt(aeskey + iv))
-	out += array("B", aes.encrypt(data))
+	encryptedData = aes.encrypt(data)
+	if sign_rsaprivkey:
+		sign_rsaprivkey = RSA.importKey(sign_rsaprivkey)
+		pss = PKCS1_PSS.new(sign_rsaprivkey)
+		h = SHA512.new()
+		#h.update(encryptedData)
+		sign = pss.sign(h)
+		out += strEncode(sign)
+	else:
+		out += strEncode("")
+	out += array("B", encryptedData)		
 	return out
 
-def decrypt(stream, rsaprivkey):
-	from array import array
-	from StringIO import StringIO
+def decrypt(stream, decrypt_rsaprivkey, verifysign_rsapubkey=None):
 	if isinstance(stream, array): stream = stream.tostring()
 	if isinstance(stream, str): stream = StringIO(stream)
 	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsaprivkey)
 	from Crypto.Cipher import PKCS1_OAEP
-	rsa = PKCS1_OAEP.new(rsakey)
+	from Crypto.Cipher import AES
+	from Crypto.Signature import PKCS1_PSS
+	from Crypto.Hash import SHA512
+	decrypt_rsaprivkey = RSA.importKey(decrypt_rsaprivkey)
+	rsa = PKCS1_OAEP.new(decrypt_rsaprivkey)
 	aesdata = strDecode(stream)
 	aesdata = rsa.decrypt(aesdata)
 	aeskey = aesdata[0:32]
 	iv = aesdata[32:]
-	from Crypto.Cipher import AES
+	sign = strDecode(stream)
+	h = SHA512.new()
 	aes = AES.new(aeskey, AES.MODE_CBC, iv)
 	class Stream:
 		buffer = []
 		def read1(self):
 			if len(self.buffer) == 0:
 				nextIn = stream.read(16)
+				#h.update(nextIn)
 				self.buffer += list(aes.decrypt(nextIn))
 			return self.buffer.pop(0)
 		def read(self, n):
 			return "".join([self.read1() for i in range(n)])
-	v = varDecode(Stream())
+		def __repr__(self):
+			return "<Stream(%r,%r)>" % (stream,"".join(self.buffer))
+	v = read(Stream())
+	if verifysign_rsapubkey:
+		if not sign: raise FormatError("signature missing")
+		verifysign_rsapubkey = RSA.importKey(verifysign_rsapubkey)
+		pss = PKCS1_PSS.new(verifysign_rsapubkey)
+		if not pss.verify(h, sign): raise FormatError("signature is not authentic")
 	return v
 
-# TODO ...
+# Some tests.
 
-def addsignature(data, rsaprivkey):
-	if isinstance(data, str): data = array("B", data)
-	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
-	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsaprivkey)
-	from Crypto.Signature import PKCS1_PSS
-	pss = PKCS1_PSS.new(rsakey)
-	from Crypto.Hash import SHA512
-	h = SHA512.new()
-	h.update(data.tostring())
-	sign = pss.sign(h)
-	return strEncode(sign) + data
-
-def verifysignature(stream, rsapubkey):
-	if isinstance(data, str): data = array("B", data)
-	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
-	
-	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsapubkey)
-	from Crypto.Signature import PKCS1_PSS
-	pss = PKCS1_PSS.new(rsakey)
-	from Crypto.Hash import SHA512
-	h = SHA512.new()
-	h.update(data.tostring())
+def test_crypto():
+	v = {"hello":"world"}
+	pub1,priv1 = genkeypair()
+	pub2,priv2 = genkeypair()
+	pub3,priv3 = genkeypair()
+	encrypted_signed = encrypt(v, pub1, priv2)
+	decrypted1 = decrypt(encrypted_signed, priv1)
+	decrypted2 = decrypt(encrypted_signed, priv1, pub2)
+	assert v == decrypted1
+	assert v == decrypted2
+	try:
+		decrypt(encrypted_signed, priv1, pub3)
+		assert False, "signature wrongly assumed authentic"
+	except: pass
 

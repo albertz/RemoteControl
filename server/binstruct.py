@@ -159,6 +159,7 @@ def floatDecode(stream):
 	return (float(num)/denom) * (2 ** e)
 
 # Strings. Just size + string.
+# If this is a text, please let's all just stick to UTF8.
 
 def strEncode(s):
 	if isinstance(s, str): s = array("B", s)

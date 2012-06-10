@@ -24,6 +24,13 @@
 
 # ------- This format. ------------
 
+class FormatError(Exception): pass
+
+# Bool. Byte \x00 or \x01.
+
+def boolEncode(b): return "\x01" if b else "\x00"
+def boolDecode(stream): return bool(ord(stream.read(1)))
+
 # Integers. Use EliasGamma to decode the byte size
 # of the signed integer. I.e. we start with EliasGamma,
 # then align that to the next byte and the signed integer
@@ -161,5 +168,70 @@ def strDecode(stream):
 	strLen = intDecode(stream)
 	return stream.read(strLen)
 
+# Lists. Amounts of items, each item as variant.
+
+def listEncode(l):
+	pass
+
+
+def listDecode(stream):
+	pass
+
+# Dicts. Amounts of items, each item as 2 variants (key+value).
+
+def dictEncode(d):
+	pass
+
+def dictDecode(d):
+	pass
+
+# Variants. Bytesize + type-ID-byte + data.
+# Type-IDs:
+#  1: list
+#  2: dict
+#  3: bool
+#  4: int
+#  5: float
+#  6: str
+# None has no type-ID. It is just bytesize=0.
+
+def prefixWithSize(data):
+	return intEncode(len(data)) + data
+	
+def varEncode(v):
+	from numbers import Integral, Real
+	if v is None: return intEncode(0)
+	if isinstance(v, bool):
+		return prefixWithSize(array("B", (3,)) + boolEncode(v))
+	if isinstance(v, Integral):
+		return prefixWithSize(array("B", (4,)) + intEncode(v))
+	if isinstance(v, Real):
+		return prefixWithSize(array("B", (5,)) + floatEncode(v))
+	if isinstance(v, (str,unicode,array)):
+		return prefixWithSize(array("B", (6,)) + strEncode(v))
+	if isinstance(v, list):
+		data = listEncode(v)
+		typeEncoded = array("B", (1,))
+		lenEncoded = intEncode(len(data) + 1)
+		return lenEncoded + typeEncoded + data
+	if isinstance(v, dict):
+		data = dictEncode(v)
+		typeEncoded = array("B", (2,))
+		lenEncoded = intEncode(len(data) + 1)
+		return lenEncoded + typeEncoded + data
+	assert False
+
+def varDecode(stream):
+	varLen = intDecode(stream)
+	if varLen < 0: raise FormatError("varLen < 0")
+	if varLen == 0: return None
+	type = ord(stream.read(1))
+	if type == 1: return listDecode(stream)
+	if type == 2: return dictDecode(stream)
+	if type == 3: return boolDecode(stream)
+	if type == 4: return intDecode(stream)
+	if type == 5: return floatDecode(stream)
+	if type == 6: return strDecode(stream)
+	raise FormatError("type %i unknown" % type)
 
 	

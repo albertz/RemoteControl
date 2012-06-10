@@ -26,6 +26,8 @@
 
 FILESIGNATURE = "BINSTRUCT.1\x00"
 class FormatError(Exception): pass
+from array import array
+from StringIO import StringIO
 
 # Bool. Byte \x00 or \x01.
 
@@ -36,9 +38,6 @@ def boolDecode(stream): return bool(ord(stream.read(1)))
 # of the signed integer. I.e. we start with EliasGamma,
 # then align that to the next byte and the signed integer
 # in big endian follows.
-
-from array import array
-from StringIO import StringIO
 
 def bitsOf(n):
 	assert n >= 0

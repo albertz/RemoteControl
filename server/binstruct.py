@@ -268,3 +268,87 @@ def read(file):
 	sig = file.read(len(FILESIGNATURE))
 	if sig != FILESIGNATURE: raise FormatError("file signature wrong")
 	return varDecode(file)
+
+# Encryption / decryption. Authorization
+
+def randomString(l):
+	import random
+	return ''.join(chr(random.randint(0, 0xFF)) for i in range(l))
+
+def genkeypair():
+	from Crypto.PublicKey import RSA
+	key = RSA.generate(2048)
+	pubkey = key.publickey().exportKey("DER")
+	privkey = key.exportKey("DER")
+	return (pubkey,privkey)
+	
+def encrypt(v, rsapubkey):
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsapubkey)
+	from Crypto.Cipher import PKCS1_OAEP
+	rsa = PKCS1_OAEP.new(rsakey)
+	from array import array
+	aeskey = randomString(32)
+	iv = randomString(16)
+	from Crypto.Cipher import AES
+	aes = AES.new(aeskey, AES.MODE_CBC, iv)
+	data = varEncode(v)
+	data += array("B", (0,) * (-len(data) % 16))
+	out = strEncode(rsa.encrypt(aeskey + iv))
+	out += array("B", aes.encrypt(data))
+	return out
+
+def decrypt(stream, rsaprivkey):
+	from array import array
+	from StringIO import StringIO
+	if isinstance(stream, array): stream = stream.tostring()
+	if isinstance(stream, str): stream = StringIO(stream)
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsaprivkey)
+	from Crypto.Cipher import PKCS1_OAEP
+	rsa = PKCS1_OAEP.new(rsakey)
+	aesdata = strDecode(stream)
+	aesdata = rsa.decrypt(aesdata)
+	aeskey = aesdata[0:32]
+	iv = aesdata[32:]
+	from Crypto.Cipher import AES
+	aes = AES.new(aeskey, AES.MODE_CBC, iv)
+	class Stream:
+		buffer = []
+		def read1(self):
+			if len(self.buffer) == 0:
+				nextIn = stream.read(16)
+				self.buffer += list(aes.decrypt(nextIn))
+			return self.buffer.pop(0)
+		def read(self, n):
+			return "".join([self.read1() for i in range(n)])
+	v = varDecode(Stream())
+	return v
+
+# TODO ...
+
+def addsignature(data, rsaprivkey):
+	if isinstance(data, str): data = array("B", data)
+	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsaprivkey)
+	from Crypto.Signature import PKCS1_PSS
+	pss = PKCS1_PSS.new(rsakey)
+	from Crypto.Hash import SHA512
+	h = SHA512.new()
+	h.update(data.tostring())
+	sign = pss.sign(h)
+	return strEncode(sign) + data
+
+def verifysignature(stream, rsapubkey):
+	if isinstance(data, str): data = array("B", data)
+	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
+	
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsapubkey)
+	from Crypto.Signature import PKCS1_PSS
+	pss = PKCS1_PSS.new(rsakey)
+	from Crypto.Hash import SHA512
+	h = SHA512.new()
+	h.update(data.tostring())
+

@@ -46,3 +46,59 @@ def wait():
 	import time
 	time.sleep(10)
 	# do pyinotify or so later...
+
+def randomString(l):
+	import random
+	return ''.join(chr(random.randint(0, 0xFF)) for i in range(l))
+
+def genkeypair():
+	from Crypto.PublicKey import RSA
+	key = RSA.generate(2048)
+	pubkey = key.publickey().exportKey("DER")
+	privkey = key.exportKey("DER")
+	return (pubkey,privkey)
+	
+def encrypt(v, rsakey):
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsakey)
+	from Crypto.Cipher import PKCS1_OAEP
+	rsa = PKCS1_OAEP.new(rsakey)
+	import binstruct
+	from array import array
+	aeskey = randomString(32)
+	iv = randomString(16)
+	from Crypto.Cipher import AES
+	aes = AES.new(aeskey, AES.MODE_CBC, iv)
+	data = binstruct.varEncode(v)
+	data += array("B", (0,) * (-len(data) % 16))
+	out = binstruct.strEncode(rsa.encrypt(aeskey + iv))
+	out += array("B", aes.encrypt(data))
+	return out
+
+def decrypt(stream, rsakey):
+	from array import array
+	from StringIO import StringIO
+	if isinstance(stream, array): stream = stream.tostring()
+	if isinstance(stream, str): stream = StringIO(stream)
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsakey)
+	from Crypto.Cipher import PKCS1_OAEP
+	rsa = PKCS1_OAEP.new(rsakey)
+	import binstruct
+	aesdata = binstruct.strDecode(stream)
+	aesdata = rsa.decrypt(aesdata)
+	aeskey = aesdata[0:32]
+	iv = aesdata[32:]
+	from Crypto.Cipher import AES
+	aes = AES.new(aeskey, AES.MODE_CBC, iv)
+	class Stream:
+		buffer = []
+		def read1(self):
+			if len(self.buffer) == 0:
+				nextIn = stream.read(16)
+				self.buffer += list(aes.decrypt(nextIn))
+			return self.buffer.pop(0)
+		def read(self, n):
+			return "".join([self.read1() for i in range(n)])
+	v = binstruct.varDecode(Stream())
+	return v

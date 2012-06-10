@@ -166,6 +166,8 @@ def strEncode(s):
 	return intEncode(len(s)) + s
 
 def strDecode(stream):
+	if isinstance(stream, array): stream = stream.tostring()
+	if isinstance(stream, str): stream = StringIO(stream)
 	strLen = intDecode(stream)
 	return stream.read(strLen)
 

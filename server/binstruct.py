@@ -150,4 +150,16 @@ def floatDecode(stream):
 	num,denom,e = intDecode(stream),intDecode(stream),intDecode(stream)
 	return (float(num)/denom) * (2 ** e)
 
+# Strings. Just size + string.
+
+def strEncode(s):
+	if isinstance(s, str): s = array("B", s)
+	if isinstance(s, unicode): s = array("B", s.encode("utf-8"))
+	return intEncode(len(s)) + s
+
+def strDecode(stream):
+	strLen = intDecode(stream)
+	return stream.read(strLen)
+
+
 	

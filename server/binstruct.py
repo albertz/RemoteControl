@@ -216,6 +216,7 @@ def prefixWithSize(data):
 	
 def varEncode(v):
 	from numbers import Integral, Real
+	from collections import Mapping, Sequence
 	if v is None: return intEncode(0)
 	if isinstance(v, bool):
 		return prefixWithSize(array("B", (3,)) + boolEncode(v))
@@ -225,14 +226,14 @@ def varEncode(v):
 		return prefixWithSize(array("B", (5,)) + floatEncode(v))
 	if isinstance(v, (str,unicode,array)):
 		return prefixWithSize(array("B", (6,)) + strEncode(v))
-	if isinstance(v, (list,tuple)):
-		data = listEncode(v)
-		typeEncoded = array("B", (1,))
-		lenEncoded = intEncode(len(data) + 1)
-		return lenEncoded + typeEncoded + data
-	if isinstance(v, dict):
+	if isinstance(v, Mapping):
 		data = dictEncode(v)
 		typeEncoded = array("B", (2,))
+		lenEncoded = intEncode(len(data) + 1)
+		return lenEncoded + typeEncoded + data
+	if isinstance(v, Sequence):
+		data = listEncode(v)
+		typeEncoded = array("B", (1,))
 		lenEncoded = intEncode(len(data) + 1)
 		return lenEncoded + typeEncoded + data
 	assert False

@@ -1,5 +1,5 @@
 # binstruct - binary structure serialization
-# code by Albert Zeyer, 2012-06-10
+# code by Albert Zeyer, www.az2000.de, 2012-06-10
 # code under BSD
 
 # I wanted sth as simple as Python repr or JSON, but:

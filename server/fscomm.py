@@ -58,9 +58,9 @@ def genkeypair():
 	privkey = key.exportKey("DER")
 	return (pubkey,privkey)
 	
-def encrypt(v, rsakey):
+def encrypt(v, rsapubkey):
 	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsakey)
+	rsakey = RSA.importKey(rsapubkey)
 	from Crypto.Cipher import PKCS1_OAEP
 	rsa = PKCS1_OAEP.new(rsakey)
 	import binstruct
@@ -75,13 +75,13 @@ def encrypt(v, rsakey):
 	out += array("B", aes.encrypt(data))
 	return out
 
-def decrypt(stream, rsakey):
+def decrypt(stream, rsaprivkey):
 	from array import array
 	from StringIO import StringIO
 	if isinstance(stream, array): stream = stream.tostring()
 	if isinstance(stream, str): stream = StringIO(stream)
 	from Crypto.PublicKey import RSA
-	rsakey = RSA.importKey(rsakey)
+	rsakey = RSA.importKey(rsaprivkey)
 	from Crypto.Cipher import PKCS1_OAEP
 	rsa = PKCS1_OAEP.new(rsakey)
 	import binstruct
@@ -102,3 +102,32 @@ def decrypt(stream, rsakey):
 			return "".join([self.read1() for i in range(n)])
 	v = binstruct.varDecode(Stream())
 	return v
+
+# TODO ...
+
+def addsignature(data, rsaprivkey):
+	if isinstance(data, str): data = array("B", data)
+	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsaprivkey)
+	from Crypto.Signature import PKCS1_PSS
+	pss = PKCS1_PSS.new(rsakey)
+	from Crypto.Hash import SHA512
+	h = SHA512.new()
+	h.update(data.tostring())
+	sign = pss.sign(h)
+	import binstruct
+	return binstruct.strEncode(sign) + data
+
+def verifysignature(stream, rsapubkey):
+	if isinstance(data, str): data = array("B", data)
+	if isinstance(data, unicode): data = array("B", data.encode("utf-8"))
+	import binstruct
+	
+	from Crypto.PublicKey import RSA
+	rsakey = RSA.importKey(rsapubkey)
+	from Crypto.Signature import PKCS1_PSS
+	pss = PKCS1_PSS.new(rsakey)
+	from Crypto.Hash import SHA512
+	h = SHA512.new()
+	h.update(data.tostring())

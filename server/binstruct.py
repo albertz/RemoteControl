@@ -117,4 +117,37 @@ def intDecode(stream):
 	if isinstance(stream, str): stream = StringIO(stream)
 	binLen = eliasGammaDecode(stream)
 	return binToInt(stream.read(binLen))
+
+# Float numbers. Let's keep things simple but let's
+# also cover a lot of cases.
+# I use x = (numerator/denominator) * 2^exponent,
+# where num/denom/exp are all integers.
+# The binary representation just uses the Integer repr.
+# If denom=0, with num>0 we get +inf, num=0 we get NaN,
+# with num<0 we get -inf.
+
+def floatEncode(x):
+	import math
+	from fractions import Fraction
+	from decimal import Decimal
+	if math.isnan(x): return intEncode(0) * 3
+	if math.isinf(x): return intEncode(math.copysign(1, x)) + intEncode(0) * 2
+	if isinstance(x, Decimal):
+		sign,digits,base10e = x.as_tuple()
+		e = 0
+		num = digits
+		denom = 10 ** -base10e
+	elif isinstance(x, Fraction):
+		e,num,denom = 0, x.numerator, x.denominator
+	else:
+		m,e = math.frexp(x)
+		num,denom = m.as_integer_ratio()
+	return intEncode(num) + intEncode(denom) + intEncode(e)
+
+def floatDecode(stream):
+	if isinstance(stream, array): stream = stream.tostring()
+	if isinstance(stream, str): stream = StringIO(stream)
+	num,denom,e = intDecode(stream),intDecode(stream),intDecode(stream)
+	return (float(num)/denom) * (2 ** e)
+
 	

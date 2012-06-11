@@ -4,33 +4,128 @@
 
 import os
 import binstruct
+from glob import glob
 basedirs = None
+localDev = None
 
 def checkDropbox():
-	assert os.path.exists(os.path.expanduser("~/.Dropbox"))
+	assert os.path.exists(os.path.expanduser("~/Dropbox"))
 
-def setup(appid):
+def setup(appid, _localDev):
+	global basedirs, localDev
 	checkDropbox()
-	global basedirs
 	basedirs = ["~/Dropbox/.AppCommunication/" + appid]
+	localDev = _localDev
+	
+def findFn(fn):
+	for d in basedirs:
+		if os.path.exists(d + "/" + fn):
+			return d + "/" + fn
+	return None
 
+def baseDirFor(fn):
+	for d in basedirs:
+		if os.path.exists(d + "/" + fn):
+			return d
+	return None
+
+def existsFn(fn):
+	return bool(baseDirFor(fn))
+	
 class Dev:
-	def __init__(self, devId, publicKeys):
+	def __init__(self, devId, publicKeys=None):
 		self.devId = devId
-		self.publicKeys = publicKeys
+		if publicKeys:
+			self.publicKeys = publicKeys
+		if not self.publicKeys:
+			self.publicKeys = readPublicKeys(findFn(devId))
+	
+	def __getattr__(self, key):
+		if key == "publicKeys":
+			self.publicKeys = readPublicKeys(findFn(devId))
+			return self.publicKeys
+		raise AttributeError("no attrib '%s'" % key)
+		
 	def __hash__(self):
 		return hash(self.devId)
 	def __cmp__(self, other):
 		return cmp(self.publicKey, other.publicKey)
 
-	def awaitingConnections(): pass
-	def connections(): pass
+	def connDirs(self):
+		for d in basedirs:
+			devDir = d + "/" + self.devId
+			for connd in glob(devDir + "/messages-from-*"):
+				yield connd
+	def connections(self):
+		for d in self.connDirs():
+			sourceDevId = os.path.basename(d)[len("messages-from-"):]
+			for connf in glob(d + "/channel-*-init"):
+				connId = os.path.basename(connf)[:-5]
+				yield Conn(self.devId, sourceDevId, connId)
+	def awaitingConnections(self):
+		for c in self.connections():
+			pass
 	
 class Conn:
-	pass
+	def __init__(self, dstDevId, srcDevId, connId):
+		self.dstDev = Dev(dstDevId)
+		self.srcDev = Dev(srcDevId)
+		self.connId = connId
+		self.connData = self.readFileSrcToDst(self.initFn())
+		self.srcToDstSeqnr = 1
+		self.dstToSrcSeqnr = 1		
+	def srcToDstPrefixFn(self):
+		return self.dstDevId + "/messages-from-" + self.srcDevId + "/" + self.connId
+	def dstToSrcPrefixFn(self):
+		return self.dstDevId + "/messages-to-" + self.srcDevId + "/" + self.connId
+	def readFileSrcToDst(self, fn):
+		fullfn = findFn(fn)
+		assert fullfn
+		global localDev
+		assert self.dstDev == localDev
+		dstPrivKey = localDev.privateKeys.crypt
+		srcPubKey = self.srcDev.publicKeys.sign
+		return binstruct.readDecrypt(fullfn, dstPrivKey, srcPubKey)
+	def writeFileDstToSrc(self, fullfn, v):
+		global localDev
+		assert self.dstDev == localDev
+		srcPubKey = self.srcDev.publicKeys.crypt
+		dstPrivKey = localDev.privateKeys.sign
+		return binstruct.writeEncrypt(fullfn, v, srcPubKey, dstPrivKey)
+	def initFn(self):
+		return self.srcToDstPrefixFn() + "-init"
+	def ackFn(self):
+		return self.dstToSrcPrefixFn() + "-ack"		
+	def refusedFn(self):
+		return self.dstToSrcPrefixFn() + "-refused"
+	
+	def accept(self):
+		baseDir = baseDirFor(self.initFn())
+		assert baseDir, "maybe %s-init already deleted?" % self.connId
+		open(baseDir + "/" + self.dstToSrcPrefixFn() + "-ack", "w").close()
+	def refuse(self, reason):
+		baseDir = baseDirFor(self.initFn())
+		assert baseDir, "maybe %s-init already deleted?" % self.connId
+		fullfn = baseDir + "/" + self.dstToSrcPrefixFn() + "-refused"
+		self.writeFileDstToSrc(fullfn, {"reason":reason})
 
+
+	def readPackages(self):
+		while True:
+			fn = self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			if not findFn(fn): break
+			pkg = binstruct.Dict()
+			pkg.seqnr = self.srcToDstSeqnr
+			pkg.data = self.readFileSrcToDst(fn)
+			yield pkg
+			self.srcToDstSeqnr += 1
+	
 def readPublicKeys(fn):
-	return binstruct.read(fn)
+	keys = binstruct.read(fn)
+	assert isinstance(keys, dict)
+	assert "crypt" in keys
+	assert "sign" in keys
+	return keys
 
 def devices():
 	devs = set()

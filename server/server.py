@@ -66,10 +66,10 @@ def main():
 		for dInfo in knownClientDevices:
 			d = fscomm.dev(dInfo.devId)
 			for c in d.awaitingConnections():
-				if c.intend == "PythonExec.1":
+				if c.intent == "PythonExec.1":
 					c.accept()
 				else:
-					c.refuse("unknown intend")
+					c.refuse("unknown intend '%s'" % c.intent)
 			for c in d.connections():
 				for p in c.readPackages():
 					ret = eval(p.data)

@@ -49,7 +49,7 @@ class Dev:
 	def __hash__(self):
 		return hash(self.devId)
 	def __cmp__(self, other):
-		return cmp(self.publicKey, other.publicKey)
+		return cmp(self.publicKeys.sign, other.publicKeys.sign)
 
 	def connDirs(self):
 		for d in basedirs:
@@ -70,6 +70,7 @@ class Conn:
 	def __init__(self, dstDevId, srcDevId, connId):
 		self.dstDev = Dev(dstDevId)
 		self.srcDev = Dev(srcDevId)
+		self.baseDir = baseDirFor(self.initFn())
 		self.connId = connId
 		self.connData = self.readFileSrcToDst(self.initFn())
 		self.srcToDstSeqnr = 1
@@ -78,9 +79,7 @@ class Conn:
 		return self.dstDevId + "/messages-from-" + self.srcDevId + "/" + self.connId
 	def dstToSrcPrefixFn(self):
 		return self.dstDevId + "/messages-to-" + self.srcDevId + "/" + self.connId
-	def readFileSrcToDst(self, fn):
-		fullfn = findFn(fn)
-		assert fullfn
+	def readFileSrcToDst(self, fullfn):
 		global localDev
 		assert self.dstDev == localDev
 		dstPrivKey = localDev.privateKeys.crypt
@@ -95,31 +94,32 @@ class Conn:
 	def initFn(self):
 		return self.srcToDstPrefixFn() + "-init"
 	def ackFn(self):
-		return self.dstToSrcPrefixFn() + "-ack"		
+		return self.srcToDstPrefixFn() + "-ack"		
 	def refusedFn(self):
-		return self.dstToSrcPrefixFn() + "-refused"
+		return self.srcToDstPrefixFn() + "-refused"
 	
 	def accept(self):
-		baseDir = baseDirFor(self.initFn())
-		assert baseDir, "maybe %s-init already deleted?" % self.connId
-		open(baseDir + "/" + self.dstToSrcPrefixFn() + "-ack", "w").close()
+		open(self.baseDir + "/" + self.ackFn(), "w").close()
 	def refuse(self, reason):
-		baseDir = baseDirFor(self.initFn())
-		assert baseDir, "maybe %s-init already deleted?" % self.connId
-		fullfn = baseDir + "/" + self.dstToSrcPrefixFn() + "-refused"
+		fullfn = self.baseDir + "/" + self.refusedFn()
 		self.writeFileDstToSrc(fullfn, {"reason":reason})
-
 
 	def readPackages(self):
 		while True:
-			fn = self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
-			if not findFn(fn): break
+			fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			if not os.path.exists(fn): break
 			pkg = binstruct.Dict()
 			pkg.seqnr = self.srcToDstSeqnr
 			pkg.data = self.readFileSrcToDst(fn)
-			yield pkg
+			open(fn + "-ack", "w").close()
 			self.srcToDstSeqnr += 1
-	
+			yield pkg
+
+	def sendPackage(self, pkg):
+		fullfn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
+		self.writeFileDstToSrc(fullfn, pkg)
+		self.dstToSrcSeqnr += 1
+		
 def readPublicKeys(fn):
 	keys = binstruct.read(fn)
 	assert isinstance(keys, dict)

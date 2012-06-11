@@ -8,6 +8,18 @@ cfg = {}
 def setup(cfgfile, vars, varnames):
 	global cfg, CfgFile
 	CfgFile = cfgfile
+
+	try:
+		loadedCfg = eval(open(CfgFile).read())
+		for vn in varnames:
+			if vn in loadedCfg:
+				vars[vn] = loadedCfg[vn]
+	except IOError: # e.g. file-not-found. that's ok
+		pass
+	except:
+		print "cfgfile reading error"
+		sys.excepthook(*sys.exc_info())
+
 	for vn in varnames:
 		cfg[vn] = vars[vn]
 

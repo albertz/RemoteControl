@@ -10,6 +10,7 @@ import datetime, time
 import os, os.path, sys
 import ast, subprocess
 import re
+import binstruct
 
 progname = "RemoteEverywhere"
 appid = "com.albertzeyer." + progname
@@ -37,12 +38,19 @@ try: os.makedirs(userdir)
 except: pass
 
 knownClientDevices = {}
+localDev = binstruct.Dict()
 
 import easycfg
-easycfg.setup(userdir + "/server.cfg", globals(), ["knownClientDevices"])
+easycfg.setup(userdir + "/server.cfg", globals(), ["knownClientDevices", "localDev"])
+
+if not localDev:
+	pubCryptKey,privCryptKey = binstruct.genkeypair()
+	pubSignKey,privSignKey = binstruct.genkeypair()
+	localDev.publicKeys = binstruct.Dict({"crypt": pubCryptKey, "sign": pubSignKey})
+	localDev.privateKeys = binstruct.Dict({"crypt": privCryptKey, "sign": privSignKey})
 
 import fscomm
-fscomm.setup(appid)
+fscomm.setup(appid, localDev)
 
 import gui
 

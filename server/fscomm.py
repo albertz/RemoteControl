@@ -64,7 +64,8 @@ class Dev:
 				yield Conn(self.devId, sourceDevId, connId)
 	def awaitingConnections(self):
 		for c in self.connections():
-			pass
+			if c.isAwaiting():
+				yield c
 	
 class Conn:
 	def __init__(self, dstDevId, srcDevId, connId):
@@ -103,7 +104,11 @@ class Conn:
 	def refuse(self, reason):
 		fullfn = self.baseDir + "/" + self.refusedFn()
 		self.writeFileDstToSrc(fullfn, {"reason":reason})
-
+	def isAwaiting(self):
+		exAck = os.path.exists(self.baseDir + "/" + self.ackFn())
+		exRefused = os.path.exists(self.baseDir + "/" + self.refusedFn())
+		return not exAck and not exRefused
+	
 	def readPackages(self):
 		while True:
 			fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)

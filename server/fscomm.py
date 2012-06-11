@@ -3,6 +3,7 @@
 # 2012-06-08
 
 import os
+import binstruct
 basedirs = None
 
 def checkDropbox():
@@ -14,16 +15,22 @@ def setup(appid):
 	basedirs = ["~/Dropbox/.AppCommunication/" + appid]
 
 class Dev:
-	def __init__(self, publicKey):
-		self.publicKey = publicKey
-
+	def __init__(self, devId, publicKeys):
+		self.devId = devId
+		self.publicKeys = publicKeys
 	def __hash__(self):
 		return hash(self.devId)
 	def __cmp__(self, other):
 		return cmp(self.publicKey, other.publicKey)
 
-def readPublicKey(fn):
-	return open(fn).read()
+	def awaitingConnections(): pass
+	def connections(): pass
+	
+class Conn:
+	pass
+
+def readPublicKeys(fn):
+	return binstruct.read(fn)
 
 def devices():
 	devs = set()
@@ -31,15 +38,17 @@ def devices():
 		try: devdirs = os.listdir(basedir)
 		except: continue
 		for devdir in devdirs:
-			if os.path.isdir(devdir) and os.path.exists(devdir + "/publicKey"):
-				publicKey = readPublicKey(fn)
-				d = Dev(publicKey)
+			keysFn = devdir + "/publicKeys"
+			if os.path.isdir(devdir) and os.path.exists(keysFn):
+				devId = os.path.basename(devdir)
+				publicKeys = readPublicKeys(keysFn)
+				d = Dev(devId, publicKeys)
 				devs.insert(d)
 	for d in devs:
 		yield d
 
-def dev(publicKey):
-	return Dev(publicKey)
+def dev(publicKeys):
+	return Dev(publicKeys)
 
 def wait():
 	# stupid for now...

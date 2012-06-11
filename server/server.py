@@ -39,7 +39,7 @@ except: pass
 knownClientDevices = {}
 
 import easycfg
-easycfg.setup(globals(), "knownClientDevices")
+easycfg.setup(userdir + "/server.cfg", globals(), ["knownClientDevices"])
 
 import fscomm
 fscomm.setup(appid)
@@ -60,7 +60,7 @@ def main():
 				devInfo = {}
 				knownClientDevices[d.publicKey] = devInfo
 				devInfo["devId"] = d.devId
-				devInfo["publicKey"] = d.publicKey
+				devInfo["publicKeys"] = d.publicKeys
 				devInfo["allowAccess"] = answer
 
 		for dInfo in knownClientDevices:

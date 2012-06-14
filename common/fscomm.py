@@ -5,6 +5,9 @@
 import os
 import binstruct
 from glob import glob
+import itertools
+import random
+
 basedirs = None
 localDev = None
 
@@ -31,7 +34,7 @@ def baseDirFor(fn):
 
 def existsFn(fn):
 	return bool(baseDirFor(fn))
-	
+
 class Dev:
 	def __init__(self, devId, publicKeys=None):
 		self.devId = devId
@@ -66,6 +69,78 @@ class Dev:
 		for c in self.connections():
 			if c.isAwaiting():
 				yield c
+
+def commonStrLen(*args):
+	c = 0
+	for cs in itertools.izip(*args):
+		if min(cs) != max(cs): break
+		c += 1
+	return c
+
+class LList: # lazy list
+	def __init__(self, base, op=iter):
+		self.base = base
+		self.op = op
+	def __add__(self, other):
+		return llist((self, other), lambda x: itertools.chain(*x))
+	def __iter__(self):
+		return self.op(self.base)
+	def __str__(self):
+		return "llist(%s,%s)" % (self.base, self.op)
+	def __getslice__(self, start, end):
+		# slow dummy implementation
+		if start is None: start = 0
+		tmp = None
+		for i, v in itertools.izip(itertools.count(0), iter(self)):
+			if i >= end: break
+			if i == start: tmp = v
+			if i > start: tmp += v
+		return tmp
+
+class LFSeq: # lazy infinite sequence with new elements from func
+	def __init__(self, func):
+		self.evaluated = []
+		self.func = func
+	def fillUpToLen(self, n):
+		self.evaluated += [self.func() for i in range(len(self.evaluated), n)]
+	def __iter__(self):
+		i = 0
+		while True:
+			yield self[i]
+			i += 1
+	def __getitem__(self, i):
+		self.fillUpToLen(i + 1)
+		return self.evaluated[i]
+	def __getslice__(self, i, k):
+		assert k is not None, "inf not supported here" # (would be easy via LList, though...)
+		if i is None: i = 0
+		assert i >= 0, "LFSeq has no len"
+		assert k >= 0, "LFSeq has no len"
+		self.fillUpToLen(k)
+		return self.evaluated[i:k]
+
+chars = map(chr, range(ord("a"), ord("z")) + range(ord("0"),ord("9")))
+rndChar = lambda: random.choice(chars)
+LRndSeq = lambda: LFSeq(rndChar)
+
+def registerDev(publicKeys, appId, version):
+	"""returns existing matching Dev, if there is any
+	otherwise, it creates a new Dev"""
+	from sha import sha
+	longDevId = LList("dev-" + sha(publicKeys.sign).hexdigest()) + "-" + LRndSeq()
+	longestCommonDevId = 9
+	takenDevIds = set()
+	for d in devices():
+		if d.publicKeys == publicKeys: return d
+		takenDevIds.add(d.devId)
+		longestCommonDevId = max(longestCommonDevId, commonStrLen(longDevId, d.devId))
+	devId = longDevId[:longestCommonDevId+1]
+	
+	# create new
+	devdir = baseDirs[0] + "/" + devId
+	os.mkdir(devdir)
+	binstruct.write(devdir + "/publicKeys", publicKeys)
+	binstruct.write(devdir + "/appInfo", {"appId":appId, "version":version})
 	
 class Conn:
 	def __init__(self, dstDevId, srcDevId, connId):

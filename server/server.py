@@ -3,19 +3,19 @@
 # code by Albert Zeyer, www.az2000.de
 # 2012-06-08
 
+import os, os.path, sys
+mydir = os.path.dirname(__file__) or os.getcwd()
+mydir = os.path.abspath(mydir)
+sys.path += [mydir + "/../common"]
+
 import better_exchook
 better_exchook.install()
 
 import datetime, time
-import os, os.path, sys
 import ast, subprocess
 import re
 import binstruct
-
-progname = "RemoteEverywhere"
-appid = "com.albertzeyer." + progname
-mydir = os.path.dirname(__file__) or os.getcwd()
-userdir = "~/." + progname
+from appinfo import *
 
 def local_filename_from_url(filename):
 	if not filename.startswith("file://"): return None
@@ -23,19 +23,6 @@ def local_filename_from_url(filename):
 	filename = removestart(filename, "file://localhost")
 	filename = removestart(filename, "file://")
 	return filename
-
-if sys.platform == "darwin":
-	userdir = "~/Library/Application Support/" + progname
-elif sys.platform == "win32":
-	from win32com.shell import shellcon, shell
-	userdir = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0) + "/" + progname
-	print >>sys.stderr, "WARNING: win32 support is untested"
-else:
-	raise Exception, "missing support for your platform"
-
-userdir = os.path.expanduser(userdir)
-try: os.makedirs(userdir)
-except: pass
 
 knownClientDevices = {}
 localDev = binstruct.Dict()

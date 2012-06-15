@@ -35,9 +35,14 @@ if not localDev:
 	pubSignKey,privSignKey = binstruct.genkeypair()
 	localDev.publicKeys = binstruct.Dict({"crypt": pubCryptKey, "sign": pubSignKey})
 	localDev.privateKeys = binstruct.Dict({"crypt": privCryptKey, "sign": privSignKey})
+	easycfg.save()
+localDev.type = "RemoteControlServer"
+localDev.appInfo = {"appId":appid, "version":version}
 
 import fscomm
 fscomm.setup(appid, localDev)
+
+localDev = fscomm.registerDev(localDev)
 
 import gui
 

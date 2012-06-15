@@ -1,131 +1,20 @@
 #!/usr/bin/python
 
-import ctypes
-from ctypes import CDLL, c_int, c_bool, c_int16, c_uint16, c_uint32, c_int32, c_uint64, POINTER
-dll = ctypes.CDLL("/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices")
+import Quartz
 
-#CGEventRef CGEventCreateKeyboardEvent (
-#   CGEventSourceRef source,
-#   CGKeyCode virtualKey,
-#   bool keyDown
-#);
+# NSEvent.h
+NSSystemDefined = 14
 
-# CGRemoteOperations.h
-CGKeyCode = ctypes.c_uint16
-
-# from CGEventTypes.h
-CGEventRef = ctypes.POINTER(ctypes.c_int) # __CGEvent*
-CGEventSourceRef = ctypes.POINTER(ctypes.c_int) # __CGEventSource*
-
-# CGEvent.h
-CGEventCreateKeyboardEvent = dll.CGEventCreateKeyboardEvent
-CGEventCreateKeyboardEvent.argtypes = (CGEventSourceRef, CGKeyCode, ctypes.c_bool)
-CGEventCreateKeyboardEvent.restype = CGEventRef
-
-CGEventTapLocation = ctypes.c_uint32
-CGEventPost = dll.CGEventPost
-CGEventPost.argtypes = (CGEventTapLocation, CGEventRef)
-CGEventPost.restype = None
-
-CGEventType = ctypes.c_uint32
-CGEventFlags = ctypes.c_uint64
-
-CGEventSetType = dll.CGEventSetType
-CGEventSetType.argtypes = (CGEventRef, CGEventType)
-CGEventSetType.restype = None
-CGEventSetFlags = dll.CGEventSetFlags
-CGEventSetFlags.argtypes = (CGEventRef, CGEventFlags)
-CGEventSetFlags.restype = None
-
-CFRelease = dll.CFRelease
-CFRelease.argtypes = (CGEventRef,)
-CFRelease.restype = None
-
-
-# IOLLEvent.h
-NX_KEYDOWN = 10
-NX_KEYUP = 11
-NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8
-NX_SYSDEFINED = 14
-NSSystemDefined = 14 # NSEvent.h
-kNXEventDataVersion = 2
-
-
+# hidsystem/ev_keymap.h
+NX_KEYTYPE_SOUND_UP = 0
+NX_KEYTYPE_SOUND_DOWN = 1
 NX_KEYTYPE_PLAY = 16
-kern_return_t = ctypes.c_int
-
-class NXEventDataCompoundMisc(ctypes.Union):
-	_fields = [
-		("F", ctypes.c_float * 11),
-		("L", ctypes.c_int32 * 11),
-		("S", ctypes.c_int16 * 22),
-		("C", ctypes.c_int8 * 44)
-	]
-class NXEventDataCompound(ctypes.Structure):
-	_fields_ = [
-		("reserved", c_int16),
-		("subType", c_int16),
-		("misc", NXEventDataCompoundMisc),
-		("__buffer", c_int32 * 16) # just to be sure
-	]
-class NXEventData(ctypes.Union):
-	_fields_ = [
-		("compound", NXEventDataCompound),
-		# ...
-	]
-class NXEvent(ctypes.Structure):
-	_fields_ = [
-		("type", c_int32),
-		("x", c_int32),
-		("y", c_int32),
-		("time", c_uint64),
-		("flags", c_int32),
-		("window", c_uint32),
-		("service_id", c_uint64),
-		("ext_pid", c_int32),
-		("data", NXEventData)
-	]
-
-io_connect_t = POINTER(c_int) # actually IOObject* (device_types.h)
-IOGPoint = c_uint64 # todo
-IOOptionBits = c_uint64 # todo
-
-# IOHIDLib.h
-IOHIDPostEvent = dll.IOHIDPostEvent
-IOHIDPostEvent.argtypes = (
-	io_connect_t, c_uint32, IOGPoint,
-	POINTER(NXEventData), c_uint32,
-	IOOptionBits, IOOptionBits)
-IOHIDPostEvent.restype = kern_return_t
-
-def HIDPostAuxKey(auxKeyCode): # uint8
-	event = NXEventData()
-	kr = kern_return_t()
-	loc = IOGPoint({ 0, 0 })
-
-	# Key press event
-	evtInfo = c_uint32(auxKeyCode << 16 | NX_KEYDOWN << 8)
-
-	#  bzero(&event, sizeof(NXEventData));
-	event.compound.subType = NX_SUBTYPE_AUX_CONTROL_BUTTONS;
-	event.compound.misc.L[0] = evtInfo
-	kr = IOHIDPostEvent(
-		get_event_driver(), NX_SYSDEFINED, loc, event, kNXEventDataVersion, 0, False )
-#  check( KERN_SUCCESS == kr );
-
-# Key release event
-#  evtInfo = auxKeyCode << 16 | NX_KEYUP << 8;
-#  bzero(&event, sizeof(NXEventData));
-#  event.compound.subType = NX_SUBTYPE_AUX_CONTROL_BUTTONS;
-#  event.compound.misc.L[0] = evtInfo;
-#  kr = IOHIDPostEvent( get_event_driver(), NX_SYSDEFINED, loc, &event, kNXEventDataVersion, 0, FALSE );
-#  check( KERN_SUCCESS == kr );
-
-
-
+NX_KEYTYPE_NEXT = 17
+NX_KEYTYPE_PREVIOUS = 18
+NX_KEYTYPE_FAST = 19
+NX_KEYTYPE_REWIND = 20
 
 def HIDPostAuxKey(key):
-	import Quartz
 	def doKey(down):
 		ev = Quartz.NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(
 			NSSystemDefined, # type
@@ -142,6 +31,7 @@ def HIDPostAuxKey(key):
 		Quartz.CGEventPost(0, cev)
 	doKey(True)
 	doKey(False)
-	
-HIDPostAuxKey(NX_KEYTYPE_PLAY)
 
+for _ in range(10):
+	HIDPostAuxKey(NX_KEYTYPE_SOUND_UP)
+HIDPostAuxKey(NX_KEYTYPE_PLAY)

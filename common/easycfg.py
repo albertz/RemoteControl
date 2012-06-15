@@ -2,6 +2,8 @@
 # code by Albert Zeyer, www.az2000.de
 # 2012-06-08
 
+import sys
+
 CfgFile = None
 cfg = {}
 
@@ -13,7 +15,9 @@ def setup(cfgfile, vars, varnames):
 		loadedCfg = eval(open(CfgFile).read())
 		for vn in varnames:
 			if vn in loadedCfg:
-				vars[vn] = loadedCfg[vn]
+				T = type(vars[vn]) # reuse same type. e.g. user-dict or so
+				value = loadedCfg[vn]
+				vars[vn] = T(value)
 	except IOError: # e.g. file-not-found. that's ok
 		pass
 	except:

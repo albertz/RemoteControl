@@ -17,7 +17,7 @@ def checkDropbox():
 def setup(appid, _localDev):
 	global basedirs, localDev
 	checkDropbox()
-	basedirs = ["~/Dropbox/.AppCommunication/" + appid]
+	basedirs = [os.path.expanduser("~") + "/Dropbox/.AppCommunication/" + appid]
 	localDev = _localDev
 	
 def findFn(fn):
@@ -40,15 +40,21 @@ class Dev:
 		self.devId = devId
 		if publicKeys:
 			self.publicKeys = publicKeys
-		if not self.publicKeys:
-			self.publicKeys = readPublicKeys(findFn(devId))
 	
 	def __getattr__(self, key):
 		if key == "publicKeys":
 			self.publicKeys = readPublicKeys(findFn(devId))
 			return self.publicKeys
+		for key in ("type", "appInfo"):
+			value = binstruct.readDecrypt(
+				findFn(self.devId + "/" + key),
+				verifysign_rsapubkey = self.publicKeys.sign)
+			setattr(self, key, value)
+			return value
 		raise AttributeError("no attrib '%s'" % key)
-		
+	
+	def __str__(self):
+		return "<Dev %s>" % self.devId	
 	def __hash__(self):
 		return hash(self.devId)
 	def __cmp__(self, other):
@@ -82,11 +88,11 @@ class LList: # lazy list
 		self.base = base
 		self.op = op
 	def __add__(self, other):
-		return llist((self, other), lambda x: itertools.chain(*x))
+		return LList((self, other), lambda x: itertools.chain(*x))
 	def __iter__(self):
 		return self.op(self.base)
 	def __str__(self):
-		return "llist(%s,%s)" % (self.base, self.op)
+		return "LList(%s,%s)" % (self.base, self.op)
 	def __getslice__(self, start, end):
 		# slow dummy implementation
 		if start is None: start = 0
@@ -123,25 +129,41 @@ chars = map(chr, range(ord("a"), ord("z")) + range(ord("0"),ord("9")))
 rndChar = lambda: random.choice(chars)
 LRndSeq = lambda: LFSeq(rndChar)
 
-def registerDev(publicKeys, appId, version):
+def registerDev(dev):
 	"""returns existing matching Dev, if there is any
 	otherwise, it creates a new Dev"""
+	assert "privateKeys" in dev
+	assert "publicKeys" in dev
+	assert "appInfo" in dev
+	assert "type" in dev
+	
 	from sha import sha
-	longDevId = LList("dev-" + sha(publicKeys.sign).hexdigest()) + "-" + LRndSeq()
+	longDevId = LList("dev-" + sha(dev["publicKeys"]["sign"]).hexdigest()) + "-" + LRndSeq()
 	longestCommonDevId = 9
 	takenDevIds = set()
 	for d in devices():
-		if d.publicKeys == publicKeys: return d
+		if d.publicKeys == dev["publicKeys"]:
+			# update if needed
+			for key,value in dev.items():
+				setattr(d, key, value)
+			return d
 		takenDevIds.add(d.devId)
 		longestCommonDevId = max(longestCommonDevId, commonStrLen(longDevId, d.devId))
 	devId = longDevId[:longestCommonDevId+1]
 	
 	# create new
-	devdir = baseDirs[0] + "/" + devId
-	os.mkdir(devdir)
-	binstruct.write(devdir + "/publicKeys", publicKeys)
-	binstruct.write(devdir + "/appInfo", {"appId":appId, "version":version})
-	
+	devdir = basedirs[0] + "/" + devId
+	os.makedirs(devdir)
+	binstruct.write(devdir + "/publicKeys", dev["publicKeys"])
+	for key in ("appInfo","type"):
+		binstruct.writeEncrypt(
+			devdir + "/" + key, dev[key],
+			sign_rsaprivkey = dev["privateKeys"]["sign"])
+	newdev = Dev(devId, binstruct.Dict(dev["publicKeys"]))
+	for key,value in dev.items():
+		setattr(newdev, key, value)
+	return newdev
+
 class Conn:
 	def __init__(self, dstDevId, srcDevId, connId):
 		self.dstDev = Dev(dstDevId)
@@ -213,12 +235,13 @@ def devices():
 		try: devdirs = os.listdir(basedir)
 		except: continue
 		for devdir in devdirs:
+			devdir = basedir + "/" + devdir
 			keysFn = devdir + "/publicKeys"
 			if os.path.isdir(devdir) and os.path.exists(keysFn):
 				devId = os.path.basename(devdir)
 				publicKeys = readPublicKeys(keysFn)
 				d = Dev(devId, publicKeys)
-				devs.insert(d)
+				devs.add(d)
 	for d in devs:
 		yield d
 

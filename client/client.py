@@ -37,7 +37,13 @@ fscomm.setup(appid, localDev)
 localDev = fscomm.registerDev(localDev)
 
 def main():
-	pass
+	serverDev = None
+	for d in fscomm.devices():
+		if d.type != "RemoteControlServer": continue
+		print "found server:", d
+		serverDev = d
+	
+	serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
 	
 if __name__ == '__main__':
 	main()

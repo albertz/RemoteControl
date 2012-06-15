@@ -5,7 +5,8 @@
 import os, sys
 import binstruct
 from glob import glob
-import itertools, random, time
+import itertools, random, time, re
+import shutil
 
 basedirs = None
 localDev = None
@@ -30,6 +31,12 @@ def baseDirFor(fn):
 		if os.path.exists(d + "/" + fn):
 			return d
 	return None
+
+def multiglob(pattern):
+	l = []
+	for d in basedirs:
+		l += glob(d + "/" + pattern)
+	return l
 
 def existsFn(fn):
 	return bool(baseDirFor(fn))
@@ -63,17 +70,37 @@ class Dev:
 		# TODO ...
 		return "Device " + self.devId
 
-	def connDirs(self):
-		for d in basedirs:
-			devDir = d + "/" + self.devId
-			for connd in glob(devDir + "/messages-from-*"):
-				yield connd
 	def connections(self): # from the server-side
-		for d in self.connDirs():
-			sourceDevId = os.path.basename(d)[len("messages-from-"):]
-			for connf in glob(d + "/channel-*-init"):
-				connId = os.path.basename(connf)[:-5]
-				yield Conn(self, Dev(sourceDevId), connId, isClient=False)
+		r = re.compile("^.*/messages-(to|from)-(.*)/channel-([A-Za-z0-9]+)-(.*)$")
+		conns = set()
+		for d in multiglob(self.devId + "/messages-*/channel-*"):
+			m = r.match(d)
+			if not m:
+				print "strange msg dir:", d
+				shutil.rmtree(d)
+				continue
+			msgDir,msgDevId,connIdNr,connTag = m.groups()
+			conns.add((msgDevId,connIdNr))
+		for msgDevId,connIdNr in conns:
+			if not multiglob(msgDevId):
+				print "strange dev src, not existing:", msgDevId
+				for f in multiglob(self.devId + "/messages-*-" + msgDevId):
+					shutil.rmtree(f)
+				continue
+			if not multiglob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-*"):
+				print msgDevId + "/channel-" + connIdNr + " has no msgs-from"
+				for f in multiglob(self.devId + "/messages-to-" + msgDevId + "/channel-" + connIdNr + "-*"):
+					os.remove(f)
+				continue
+			if not multiglob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-init"):
+				print msgDevId + "/channel-" + connIdNr + " has no init"
+				for f in multiglob(self.devId + "/messages-*-" + msgDevId + "/channel-" + connIdNr + "-*"):
+					os.remove(f)
+				continue			
+			connId = "channel-" + connIdNr
+			sourceDevId = msgDevId
+			yield Conn(self, Dev(sourceDevId), connId, isClient=False)
+			
 	def awaitingConnections(self):
 		for c in self.connections():
 			if c.isAwaiting():

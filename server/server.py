@@ -51,20 +51,20 @@ def main():
 
 		for d in fscomm.devices():
 			if d.type != "RemoteControlClient": continue
-			if d.publicKey not in knownClientDevices:
+			if d.publicKeys.sign not in knownClientDevices:
 				answer = gui.ask(
 					"A new device was found:\n\n" +
 					d.user_string() +
 					"\nDo you want to allow full access on your computer?\n" +
 					"(You can always disable the access again.)")
 				devInfo = {}
-				knownClientDevices[d.publicKey] = devInfo
+				knownClientDevices[d.publicKeys.sign] = devInfo
 				devInfo["devId"] = d.devId
 				devInfo["publicKeys"] = d.publicKeys
 				devInfo["allowAccess"] = answer
 
-		for dInfo in knownClientDevices:
-			d = fscomm.dev(dInfo.devId)
+		for dInfo in knownClientDevices.values():
+			d = fscomm.dev(dInfo["devId"])
 			for c in d.awaitingConnections():
 				if c.intent == "PythonExec.1":
 					c.accept()

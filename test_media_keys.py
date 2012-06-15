@@ -123,41 +123,25 @@ def HIDPostAuxKey(auxKeyCode): # uint8
 
 
 
-#ev = CGEventCreate()
-#CGEventSetType(ev, NSSystemDefined)
 
-#keyCode = NX_KEYTYPE_PLAY << 16
-#keyDown = CGEventCreateKeyboardEvent(None, keyCode, True)
-#keyUp = CGEventCreateKeyboardEvent(None, keyCode, False)
+def HIDPostAuxKey(key):
+	import Quartz
+	def doKey(down):
+		ev = Quartz.NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(
+			NSSystemDefined, # type
+			(0,0), # location
+			0xa00 if down else 0xb00, # flags
+			0, # timestamp
+			0, # window
+			0, # ctx
+			8, # subtype
+			(key << 16) | ((0xa if down else 0xb) << 8), # data1
+			-1 # data2
+			)
+		cev = ev.CGEvent()
+		Quartz.CGEventPost(0, cev)
+	doKey(True)
+	doKey(False)
+	
+HIDPostAuxKey(NX_KEYTYPE_PLAY)
 
-#CGEventSetFlags()
-
-#keyCode = NX_KEYTYPE_PLAY<<16 & 1
-#keyDown = CGEventCreateKeyboardEvent(None, keyCode, True)
-#keyUp = CGEventCreateKeyboardEvent(None, keyCode, False)
-
-#CGEventPost(0, keyDown)
-
-import Quartz
-#import AppKit
-ev = Quartz.NSEvent.otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2_(
-	NSSystemDefined, # type
-	(0,0), # location
-	0xa00, # flags
-	0, # timestamp
-	0, # window
-	0, # ctx
-	8, # subtype
-	(NX_KEYTYPE_PLAY << 16) | (0xa << 8), # data1
-	-1 # data2
-	)
-cev = ev.CGEvent()
-Quartz.CGEventPost(0, cev)
-Quartz.CGEventPost(1, cev)
-Quartz.CGEventPost(2, cev)
-
-import time
-for i in xrange(5): time.sleep(0.1)
-
-
-#CGEventPost(0, keyUp)

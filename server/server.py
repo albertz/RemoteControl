@@ -76,10 +76,13 @@ def main():
 			print "conn:", c
 			for p in c.readPackages():
 				print "got", repr(p), "from", c.srcDev
-				ret = eval(p.data)
 				response = {}
-				response["ret"] = ret
 				response["seqnr"] = p.seqnr
+				try:
+					ret = eval(p.data)
+					response["ret"] = ret
+				except Exception as exc:
+					response["exception"] = repr(exc)
 				c.sendPackage(response)
 
 		easycfg.save()

@@ -48,8 +48,8 @@ def main():
 	print "sent, waiting..."
 	while True:
 		for p in conn.readPackages():
-			print "got", repr(p), "from", c.dstDev
-		try: time.sleep(10)
+			print "got", repr(p), "from", conn.dstDev
+		try: time.sleep(0.5)
 		except: sys.exit(1)
 	
 if __name__ == '__main__':

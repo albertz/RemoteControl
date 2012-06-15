@@ -208,7 +208,7 @@ class Conn:
 			assert dstDev == localDev			
 			self.connData = self.readFileSrcToDst(findFn(self.initFn()))
 		self.srcToDstSeqnr = 1
-		self.dstToSrcSeqnr = 1		
+		self.dstToSrcSeqnr = 1
 	def srcToDstPrefixFn(self):
 		return self.dstDev.devId + "/messages-from-" + self.srcDev.devId + "/" + self.connId
 	def dstToSrcPrefixFn(self):
@@ -228,6 +228,8 @@ class Conn:
 	def writeFileDstToSrc(self, fullfn, v):
 		global localDev
 		assert self.dstDev == localDev
+		try: os.mkdir(os.path.dirname(fullfn))
+		except: pass # already existing. or so. we would fail anyway later
 		srcPubKey = self.srcDev.publicKeys.crypt
 		dstPrivKey = localDev.privateKeys.sign
 		return binstruct.writeEncrypt(fullfn, v, srcPubKey, dstPrivKey)
@@ -245,7 +247,7 @@ class Conn:
 		return self.srcToDstPrefixFn() + "-ack"		
 	def refusedFn(self):
 		return self.srcToDstPrefixFn() + "-refused"
-	
+
 	def accept(self):
 		if self.isClient: f = self.writeFileSrcToDst
 		else: f = self.writeFileDstToSrc
@@ -263,26 +265,32 @@ class Conn:
 		return not exAck and not exRefused
 	
 	def readPackages(self):
+		if self.isClient: signPubKey = self.dstDev.publicKeys.sign
+		else: signPubKey = self.srcDev.publicKeys.sign
+		def incSeqNr():
+			if self.isClient: self.dstToSrcSeqnr += 1
+			else: self.srcToDstSeqnr += 1
 		while True:
 			if self.isClient:
-				fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
-			else:
 				fn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
+			else:
+				fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
 			if not os.path.exists(fn): break
+			ackFn = fn + "-ack"
+			if os.path.exists(ackFn):
+				incSeqNr()
+				continue
 			pkg = binstruct.Dict()
 			if self.isClient:
 				pkg.seqnr = self.dstToSrcSeqnr
 				pkg.data = self.readFileDstToSrc(fn)
-				self.writeFileSrcToDst(fn + "-ack", True)
+				self.writeFileSrcToDst(ackFn, True)
 			else:
 				pkg.seqnr = self.srcToDstSeqnr
 				pkg.data = self.readFileSrcToDst(fn)
-				self.writeFileDstToSrc(fn + "-ack", pkg)
-			if self.isClient:
-				self.srcToDstSeqnr += 1
-			else:
-				self.dstToSrcSeqnr += 1
+				self.writeFileDstToSrc(ackFn, pkg)
 			yield pkg
+			incSeqNr()
 
 	def sendPackage(self, pkg):
 		if self.isClient:

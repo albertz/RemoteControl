@@ -43,7 +43,14 @@ def main():
 		print "found server:", d
 		serverDev = d
 	
-	serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
+	conn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
+	conn.sendPackage("''.join(map(chr,range(97,100)))")
+	print "sent, waiting..."
+	while True:
+		for p in conn.readPackages():
+			print "got", repr(p), "from", c.dstDev
+		try: time.sleep(10)
+		except: sys.exit(1)
 	
 if __name__ == '__main__':
 	main()

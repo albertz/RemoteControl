@@ -63,20 +63,24 @@ def main():
 				devInfo["publicKeys"] = d.publicKeys
 				devInfo["allowAccess"] = answer
 
-		for dInfo in knownClientDevices.values():
-			d = fscomm.dev(dInfo["devId"])
-			for c in d.awaitingConnections():
-				if c.intent == "PythonExec.1":
-					c.accept()
-				else:
-					c.refuse("unknown intend '%s'" % c.intent)
-			for c in d.connections():
-				for p in c.readPackages():
-					ret = eval(p.data)
-					response = {}
-					response["ret"] = ret
-					response["seqnr"] = p.seqnr
-					c.sendPackage(response)
+		for c in localDev.awaitingConnections():
+			print "new conn:", c
+			if c.srcDev.publicKeys.sign not in knownClientDevices:
+				c.refuse("not accepted client " + c.srcDev.devId)
+				continue
+			if c.connData.intent == "PythonExec.1":
+				c.accept()
+			else:
+				c.refuse("unknown intend '%s'" % c.intent)
+		for c in localDev.connections():
+			print "conn:", c
+			for p in c.readPackages():
+				print "got", repr(p), "from", c.srcDev
+				ret = eval(p.data)
+				response = {}
+				response["ret"] = ret
+				response["seqnr"] = p.seqnr
+				c.sendPackage(response)
 
 		easycfg.save()
 		fscomm.wait()

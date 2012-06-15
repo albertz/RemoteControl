@@ -43,7 +43,7 @@ class Dev:
 	
 	def __getattr__(self, key):
 		if key == "publicKeys":
-			self.publicKeys = readPublicKeys(findFn(devId))
+			self.publicKeys = readPublicKeys(findFn(self.devId + "/publicKeys"))
 			return self.publicKeys
 		if key in ("type", "appInfo"):
 			value = binstruct.readDecrypt(
@@ -53,7 +53,7 @@ class Dev:
 			return value
 		raise AttributeError("no attrib '%s'" % key)
 	
-	def __str__(self):
+	def __repr__(self):
 		return "<Dev %s>" % self.devId	
 	def __hash__(self):
 		return hash(self.devId)
@@ -159,6 +159,7 @@ def registerDev(dev):
 	assert "publicKeys" in dev
 	assert "appInfo" in dev
 	assert "type" in dev
+	global localDev
 	
 	from sha import sha
 	longDevId = LList("dev-" + sha(dev["publicKeys"]["sign"]).hexdigest()) + "-" + LRndSeq()
@@ -170,6 +171,8 @@ def registerDev(dev):
 			for key,value in dev.items():
 				if isinstance(value, dict): value = binstruct.Dict(value)
 				setattr(d, key, value)
+			if localDev.publicKeys["sign"] == d.publicKeys["sign"]:
+				localDev = d
 			return d
 		takenDevIds.add(d.devId)
 		longestCommonDevId = max(longestCommonDevId, commonStrLen(longDevId, d.devId))
@@ -187,16 +190,23 @@ def registerDev(dev):
 	for key,value in dev.items():
 		if isinstance(value, dict): value = binstruct.Dict(value)
 		setattr(newdev, key, value)
+	if localDev.publicKeys["sign"] == newdev.publicKeys["sign"]:
+		localDev = newdev
 	return newdev
 
 class Conn:
 	def __init__(self, dstDev, srcDev, connId, isClient):
-		self.connId = connId
+		global localDev
 		self.dstDev = dstDev
 		self.srcDev = srcDev
+		self.connId = connId
+		self.isClient = isClient
 		self.baseDir = baseDirFor(self.initFn())
-		if not isClient:
-			self.connData = self.readFileSrcToDst(self.initFn())
+		if isClient:
+			assert srcDev == localDev
+		else:
+			assert dstDev == localDev			
+			self.connData = self.readFileSrcToDst(findFn(self.initFn()))
 		self.srcToDstSeqnr = 1
 		self.dstToSrcSeqnr = 1		
 	def srcToDstPrefixFn(self):
@@ -209,12 +219,26 @@ class Conn:
 		dstPrivKey = localDev.privateKeys.crypt
 		srcPubKey = self.srcDev.publicKeys.sign
 		return binstruct.readDecrypt(fullfn, dstPrivKey, srcPubKey)
+	def readFileDstToSrc(self, fullfn):
+		global localDev
+		assert self.srcDev == localDev
+		srcPrivKey = localDev.privateKeys.crypt
+		dstPubKey = self.dstDev.publicKeys.sign
+		return binstruct.readDecrypt(fullfn, srcPrivKey, dstPubKey)
 	def writeFileDstToSrc(self, fullfn, v):
 		global localDev
 		assert self.dstDev == localDev
 		srcPubKey = self.srcDev.publicKeys.crypt
 		dstPrivKey = localDev.privateKeys.sign
 		return binstruct.writeEncrypt(fullfn, v, srcPubKey, dstPrivKey)
+	def writeFileSrcToDst(self, fullfn, v):
+		global localDev
+		assert self.srcDev == localDev
+		dstPubKey = self.dstDev.publicKeys.crypt
+		srcPrivKey = localDev.privateKeys.sign
+		return binstruct.writeEncrypt(fullfn, v, dstPubKey, srcPrivKey)
+	def verifyFile(self, fullfn, pubkey):
+		binstruct.verifyFile(fullfn, pubkey)
 	def initFn(self):
 		return self.srcToDstPrefixFn() + "-init"
 	def ackFn(self):
@@ -223,30 +247,52 @@ class Conn:
 		return self.srcToDstPrefixFn() + "-refused"
 	
 	def accept(self):
-		open(self.baseDir + "/" + self.ackFn(), "w").close()
+		if self.isClient: f = self.writeFileSrcToDst
+		else: f = self.writeFileDstToSrc
+		f(self.baseDir + "/" + self.ackFn(), True)
 	def refuse(self, reason):
 		fullfn = self.baseDir + "/" + self.refusedFn()
-		self.writeFileDstToSrc(fullfn, {"reason":reason})
+		if self.isClient: f = self.writeFileSrcToDst
+		else: f = self.writeFileDstToSrc
+		f(fullfn, {"reason":reason})
 	def isAwaiting(self):
 		exAck = os.path.exists(self.baseDir + "/" + self.ackFn())
 		exRefused = os.path.exists(self.baseDir + "/" + self.refusedFn())
+		if exAck: self.verifyFile(self.baseDir + "/" + self.ackFn(), self.dstDev.publicKeys.sign)
+		if exRefused: self.verifyFile(self.baseDir + "/" + self.refusedFn(), self.dstDev.publicKeys.sign)
 		return not exAck and not exRefused
 	
 	def readPackages(self):
 		while True:
-			fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			if self.isClient:
+				fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			else:
+				fn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
 			if not os.path.exists(fn): break
 			pkg = binstruct.Dict()
-			pkg.seqnr = self.srcToDstSeqnr
-			pkg.data = self.readFileSrcToDst(fn)
-			open(fn + "-ack", "w").close()
-			self.srcToDstSeqnr += 1
+			if self.isClient:
+				pkg.seqnr = self.dstToSrcSeqnr
+				pkg.data = self.readFileDstToSrc(fn)
+				self.writeFileSrcToDst(fn + "-ack", True)
+			else:
+				pkg.seqnr = self.srcToDstSeqnr
+				pkg.data = self.readFileSrcToDst(fn)
+				self.writeFileDstToSrc(fn + "-ack", pkg)
+			if self.isClient:
+				self.srcToDstSeqnr += 1
+			else:
+				self.dstToSrcSeqnr += 1
 			yield pkg
 
 	def sendPackage(self, pkg):
-		fullfn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
-		self.writeFileDstToSrc(fullfn, pkg)
-		self.dstToSrcSeqnr += 1
+		if self.isClient:
+			fullfn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			self.writeFileSrcToDst(fullfn, pkg)
+			self.srcToDstSeqnr += 1
+		else:
+			fullfn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
+			self.writeFileDstToSrc(fullfn, pkg)
+			self.dstToSrcSeqnr += 1
 		
 def readPublicKeys(fn):
 	keys = binstruct.read(fn)
@@ -277,6 +323,6 @@ def dev(publicKeys):
 def wait():
 	# stupid for now...
 	import time
-	time.sleep(10)
+	time.sleep(2)
 	# do pyinotify or so later...
 

@@ -1,3 +1,5 @@
+import sys, os
+
 progname = "RemoteEverywhere"
 appid = "com.albertzeyer." + progname
 version = "1.0"

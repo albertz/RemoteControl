@@ -2,11 +2,10 @@
 # code by Albert Zeyer, www.az2000.de
 # 2012-06-08
 
-import os
+import os, sys
 import binstruct
 from glob import glob
-import itertools
-import random
+import itertools, random, time
 
 basedirs = None
 localDev = None
@@ -204,9 +203,11 @@ class Conn:
 		self.baseDir = baseDirFor(self.initFn())
 		if isClient:
 			assert srcDev == localDev
+			self.firstTime = self.clientFirstTime()
 		else:
 			assert dstDev == localDev			
 			self.connData = self.readFileSrcToDst(findFn(self.initFn()))
+			self.firstTime = self.serverFirstTime()
 		self.srcToDstSeqnr = 1
 		self.dstToSrcSeqnr = 1
 	def srcToDstPrefixFn(self):
@@ -247,6 +248,21 @@ class Conn:
 		return self.srcToDstPrefixFn() + "-ack"		
 	def refusedFn(self):
 		return self.srcToDstPrefixFn() + "-refused"
+	def clientFirstTime(self):
+		assert self.srcDev == localDev
+		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-clientFirstTime"
+		return self.updateFirstTime(fn, self.srcDev.privateKeys.sign, self.srcDev.publicKeys.sign)
+	def serverFirstTime(self):
+		assert self.dstDev == localDev
+		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-serverFirstTime"
+		return self.updateFirstTime(fn, self.dstDev.privateKeys.sign, self.dstDev.publicKeys.sign)
+	def updateFirstTime(self, fullfn, privSignKey, pubSignKey):
+		try: v = binstruct.readDecrypt(fullfn, verifysign_rsapubkey=pubSignKey)
+		except IOError: v = None
+		if v is None or time.time() < v:
+			v = time.time()
+			binstruct.writeEncrypt(fullfn, v, sign_rsaprivkey=privSignKey)
+		return v
 
 	def accept(self):
 		if self.isClient: f = self.writeFileSrcToDst
@@ -258,11 +274,31 @@ class Conn:
 		else: f = self.writeFileDstToSrc
 		f(fullfn, {"reason":reason})
 	def isAwaiting(self):
+		return not self.isAccepted() and not self.isRefused()
+	def isAccepted(self):
 		exAck = os.path.exists(self.baseDir + "/" + self.ackFn())
-		exRefused = os.path.exists(self.baseDir + "/" + self.refusedFn())
 		if exAck: self.verifyFile(self.baseDir + "/" + self.ackFn(), self.dstDev.publicKeys.sign)
+		return exAck
+	def isRefused(self):
+		exRefused = os.path.exists(self.baseDir + "/" + self.refusedFn())
 		if exRefused: self.verifyFile(self.baseDir + "/" + self.refusedFn(), self.dstDev.publicKeys.sign)
-		return not exAck and not exRefused
+		return exRefused		
+	def close(self, reason=None):
+		if self.isClient:
+			self.writeFileSrcToDst(self.baseDir + "/" + self.srcToDstPrefixFn() + "-close", {"reason":reason})
+			return # cleanup will all be done by server
+		for fn in glob(self.baseDir + "/" + self.dstDev.devId + "/messages-*-" + self.srcDev.devId + "/" + self.connId + "-*"):
+			os.remove(fn)
+	def isOpen(self):
+		fn = findFn(self.initFn())
+		if fn: self.verifyFile(fn, self.srcDev.publicKeys.sign)
+		return bool(fn)
+	def hasCloseRequest(self):
+		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-close"
+		if os.path.exists(fn):
+			self.verifyFile(fn, self.srcDev.publicKeys.sign)
+			return True
+		return False
 	
 	def readPackages(self):
 		if self.isClient: signPubKey = self.dstDev.publicKeys.sign
@@ -331,6 +367,7 @@ def dev(publicKeys):
 def wait():
 	# stupid for now...
 	import time
-	time.sleep(2)
+	try: time.sleep(2)
+	except KeyboardInterrupt: sys.exit(1)
 	# do pyinotify or so later...
 

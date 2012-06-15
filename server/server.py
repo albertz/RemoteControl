@@ -72,8 +72,15 @@ def main():
 				c.accept()
 			else:
 				c.refuse("unknown intend '%s'" % c.intent)
+
 		for c in localDev.connections():
-			print "conn:", c
+			if c.hasCloseRequest():
+				c.close()
+				continue
+			if time.time() - c.firstTime > 60: # old enough to cleanup
+				c.close()
+				continue
+			if not c.isAccepted(): continue
 			for p in c.readPackages():
 				print "got", repr(p), "from", c.srcDev
 				response = {}

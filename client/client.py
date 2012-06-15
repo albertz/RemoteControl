@@ -36,7 +36,7 @@ fscomm.setup(appid, localDev)
 
 localDev = fscomm.registerDev(localDev)
 
-def main():
+def main(pythonCmd):
 	serverDev = None
 	for d in fscomm.devices():
 		if d.type != "RemoteControlServer": continue
@@ -44,14 +44,20 @@ def main():
 		serverDev = d
 	
 	conn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
-	conn.sendPackage("''.join(map(chr,range(97,100)))")
-	print "sent, waiting..."
+	conn.sendPackage(pythonCmd)
+	print "sent %r, waiting..." % pythonCmd
 	while True:
 		for p in conn.readPackages():
 			print "got", repr(p), "from", conn.dstDev
+			conn.close()
+			conn = None
+			break
+		if not conn: break
 		try: time.sleep(0.5)
 		except: sys.exit(1)
+	print "finished"
 	
 if __name__ == '__main__':
-	main()
+	pythonCmd = sys.argv[1] if len(sys.argv) > 1 else "''.join(map(chr,range(97,100)))"
+	main(pythonCmd)
 	

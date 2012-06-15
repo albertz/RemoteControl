@@ -17,6 +17,25 @@ import re
 import binstruct
 from appinfo import *
 
+localDev = binstruct.Dict()
+
+import easycfg
+easycfg.setup(userdir + "/client.cfg", globals(), ["localDev"])
+
+if not localDev:
+	pubCryptKey,privCryptKey = binstruct.genkeypair()
+	pubSignKey,privSignKey = binstruct.genkeypair()
+	localDev.publicKeys = binstruct.Dict({"crypt": pubCryptKey, "sign": pubSignKey})
+	localDev.privateKeys = binstruct.Dict({"crypt": privCryptKey, "sign": privSignKey})
+	easycfg.save()
+localDev.type = "RemoteControlClient"
+localDev.appInfo = {"appId":appid, "version":version}
+
+import fscomm
+fscomm.setup(appid, localDev)
+
+localDev = fscomm.registerDev(localDev)
+
 def main():
 	pass
 	

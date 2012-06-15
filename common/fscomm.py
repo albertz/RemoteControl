@@ -69,16 +69,32 @@ class Dev:
 			devDir = d + "/" + self.devId
 			for connd in glob(devDir + "/messages-from-*"):
 				yield connd
-	def connections(self):
+	def connections(self): # from the server-side
 		for d in self.connDirs():
 			sourceDevId = os.path.basename(d)[len("messages-from-"):]
 			for connf in glob(d + "/channel-*-init"):
 				connId = os.path.basename(connf)[:-5]
-				yield Conn(self.devId, sourceDevId, connId)
+				yield Conn(self, Dev(sourceDevId), connId, isClient=False)
 	def awaitingConnections(self):
 		for c in self.connections():
 			if c.isAwaiting():
 				yield c
+
+	def connectFrom(self, srcDev, connData):
+		assert "intent" in connData
+		connd = basedirs[0] + "/" + self.devId + "/messages-from-" + srcDev.devId
+		try: os.mkdir(connd)
+		except: pass # might exist
+		connIdNum = LRndSeq()
+		for i in itertools.count(4):
+			connId = "channel-" + connIdNum[:i]
+			channelfn = connd + "/" + connId + "-init"
+			if os.path.exists(channelfn): continue
+			binstruct.writeEncrypt(
+				channelfn, connData,
+				encrypt_rsapubkey = self.publicKeys.crypt,
+				sign_rsaprivkey = srcDev.privateKeys.sign)
+			return Conn(self, srcDev, connId, isClient=True)
 
 def commonStrLen(*args):
 	c = 0
@@ -127,7 +143,10 @@ class LFSeq: # lazy infinite sequence with new elements from func
 		assert i >= 0, "LFSeq has no len"
 		assert k >= 0, "LFSeq has no len"
 		self.fillUpToLen(k)
-		return self.evaluated[i:k]
+		if isinstance(self.evaluated[0], basestring):
+			return "".join(self.evaluated[i:k])
+		else:
+			return self.evaluated[i:k]
 
 chars = map(chr, range(ord("a"), ord("z")) + range(ord("0"),ord("9")))
 rndChar = lambda: random.choice(chars)
@@ -149,6 +168,7 @@ def registerDev(dev):
 		if d.publicKeys == dev["publicKeys"]:
 			# update if needed
 			for key,value in dev.items():
+				if isinstance(value, dict): value = binstruct.Dict(value)
 				setattr(d, key, value)
 			return d
 		takenDevIds.add(d.devId)
@@ -165,22 +185,24 @@ def registerDev(dev):
 			sign_rsaprivkey = dev["privateKeys"]["sign"])
 	newdev = Dev(devId, binstruct.Dict(dev["publicKeys"]))
 	for key,value in dev.items():
+		if isinstance(value, dict): value = binstruct.Dict(value)
 		setattr(newdev, key, value)
 	return newdev
 
 class Conn:
-	def __init__(self, dstDevId, srcDevId, connId):
-		self.dstDev = Dev(dstDevId)
-		self.srcDev = Dev(srcDevId)
-		self.baseDir = baseDirFor(self.initFn())
+	def __init__(self, dstDev, srcDev, connId, isClient):
 		self.connId = connId
-		self.connData = self.readFileSrcToDst(self.initFn())
+		self.dstDev = dstDev
+		self.srcDev = srcDev
+		self.baseDir = baseDirFor(self.initFn())
+		if not isClient:
+			self.connData = self.readFileSrcToDst(self.initFn())
 		self.srcToDstSeqnr = 1
 		self.dstToSrcSeqnr = 1		
 	def srcToDstPrefixFn(self):
-		return self.dstDevId + "/messages-from-" + self.srcDevId + "/" + self.connId
+		return self.dstDev.devId + "/messages-from-" + self.srcDev.devId + "/" + self.connId
 	def dstToSrcPrefixFn(self):
-		return self.dstDevId + "/messages-to-" + self.srcDevId + "/" + self.connId
+		return self.dstDev.devId + "/messages-to-" + self.srcDev.devId + "/" + self.connId
 	def readFileSrcToDst(self, fullfn):
 		global localDev
 		assert self.dstDev == localDev

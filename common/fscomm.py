@@ -45,7 +45,7 @@ class Dev:
 		if key == "publicKeys":
 			self.publicKeys = readPublicKeys(findFn(devId))
 			return self.publicKeys
-		for key in ("type", "appInfo"):
+		if key in ("type", "appInfo"):
 			value = binstruct.readDecrypt(
 				findFn(self.devId + "/" + key),
 				verifysign_rsapubkey = self.publicKeys.sign)
@@ -59,6 +59,10 @@ class Dev:
 		return hash(self.devId)
 	def __cmp__(self, other):
 		return cmp(self.publicKeys.sign, other.publicKeys.sign)
+
+	def user_string(self):
+		# TODO ...
+		return "Device " + self.devId
 
 	def connDirs(self):
 		for d in basedirs:

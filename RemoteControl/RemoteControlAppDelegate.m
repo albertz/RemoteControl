@@ -7,6 +7,7 @@
 //
 
 #import "RemoteControlAppDelegate.h"
+#include "Python.h"
 
 @implementation RemoteControlAppDelegate
 
@@ -21,6 +22,10 @@
 	// Add the tab bar controller's current view as a subview of the window
 	self.window.rootViewController = self.tabBarController;
 	[self.window makeKeyAndVisible];
+	
+	Py_Initialize();
+	PyRun_SimpleString("print 'foo'");
+	
     return YES;
 }
 

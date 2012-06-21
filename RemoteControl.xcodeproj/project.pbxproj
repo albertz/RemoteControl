@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		2320FC821592113E0042F233 /* libpython.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2320FC811592113E0042F233 /* libpython.a */; };
+		2320FC9915929F880042F233 /* exec in Copy Files */ = {isa = PBXBuildFile; fileRef = 2320FC9815929F880042F233 /* exec */; };
+		2320FC9B15929F8D0042F233 /* lib in Copy Files */ = {isa = PBXBuildFile; fileRef = 2320FC9A15929F8D0042F233 /* lib */; };
+		2320FC9F15929F960042F233 /* pyconfig.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 2320FC9E15929F960042F233 /* pyconfig.h */; };
+		2320FCBF1592A2C20042F233 /* Crypto in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2320FCBE1592A2B40042F233 /* Crypto */; };
 		235B53F2132E888000E87772 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F1132E888000E87772 /* UIKit.framework */; };
 		235B53F4132E888000E87772 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F3132E888000E87772 /* Foundation.framework */; };
 		235B53F6132E888000E87772 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 235B53F5132E888000E87772 /* CoreGraphics.framework */; };
@@ -37,8 +41,38 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		2320FC9515929F340042F233 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = pylib;
+			dstSubfolderSpec = 7;
+			files = (
+				2320FC9915929F880042F233 /* exec in Copy Files */,
+				2320FC9B15929F8D0042F233 /* lib in Copy Files */,
+				2320FC9F15929F960042F233 /* pyconfig.h in Copy Files */,
+			);
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2320FCA01592A10C0042F233 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = pylib/otherlibs;
+			dstSubfolderSpec = 7;
+			files = (
+				2320FCBF1592A2C20042F233 /* Crypto in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		2320FC811592113E0042F233 /* libpython.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpython.a; path = "../python-embedded/libpython.a"; sourceTree = "<group>"; };
+		2320FC9815929F880042F233 /* exec */ = {isa = PBXFileReference; lastKnownFileType = folder; name = exec; path = "../python-embedded/pylib/exec"; sourceTree = "<group>"; };
+		2320FC9A15929F8D0042F233 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = "../python-embedded/pylib/lib"; sourceTree = "<group>"; };
+		2320FC9E15929F960042F233 /* pyconfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pyconfig.h; path = "../python-embedded/pylib/pyconfig.h"; sourceTree = "<group>"; };
+		2320FCBE1592A2B40042F233 /* Crypto */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Crypto; path = "../python-embedded/pycrypto/lib/Crypto"; sourceTree = "<group>"; };
 		235B53ED132E888000E87772 /* RemoteControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemoteControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		235B53F1132E888000E87772 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		235B53F3132E888000E87772 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -91,9 +125,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2320FCBC1592A22E0042F233 /* otherlibs */ = {
+			isa = PBXGroup;
+			children = (
+				2320FCBE1592A2B40042F233 /* Crypto */,
+			);
+			name = otherlibs;
+			sourceTree = "<group>";
+		};
+		2320FCBD1592A23A0042F233 /* pylib */ = {
+			isa = PBXGroup;
+			children = (
+				2320FCBC1592A22E0042F233 /* otherlibs */,
+				2320FC9E15929F960042F233 /* pyconfig.h */,
+				2320FC9A15929F8D0042F233 /* lib */,
+				2320FC9815929F880042F233 /* exec */,
+			);
+			name = pylib;
+			sourceTree = "<group>";
+		};
 		235B53E2132E888000E87772 = {
 			isa = PBXGroup;
 			children = (
+				2320FCBD1592A23A0042F233 /* pylib */,
 				2320FC811592113E0042F233 /* libpython.a */,
 				235B548713362D7900E87772 /* src */,
 				235B53F7132E888000E87772 /* RemoteControl */,
@@ -197,6 +251,8 @@
 				235B53E9132E888000E87772 /* Sources */,
 				235B53EA132E888000E87772 /* Frameworks */,
 				235B53EB132E888000E87772 /* Resources */,
+				2320FC9515929F340042F233 /* Copy Files */,
+				2320FCA01592A10C0042F233 /* CopyFiles */,
 			);
 			buildRules = (
 			);

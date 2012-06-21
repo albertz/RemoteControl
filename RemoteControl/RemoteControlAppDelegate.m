@@ -22,7 +22,8 @@
 	// Add the tab bar controller's current view as a subview of the window
 	self.window.rootViewController = self.tabBarController;
 	[self.window makeKeyAndVisible];
-	
+
+	Py_SetProgramName((char*)[[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/"] UTF8String]);
 	Py_Initialize();
 	PyRun_SimpleString("print 'foo'");
 	

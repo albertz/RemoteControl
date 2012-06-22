@@ -2,45 +2,85 @@
 # code by Albert Zeyer, www.az2000.de
 # 2012-06-08
 
-import os, sys
+import time
 import binstruct
-from glob import glob
-import itertools, random, time, re
-import shutil
+import itertools, random, re
 
-basedirs = None
+class FS:
+	def open(self, fn): raise NotImplemented
+	def openW(self, fn): raise NotImplemented
+	def remove(self, fn): raise NotImplemented
+	def mkdir(self, fn): raise NotImplemented
+	def exists(self, fn): raise NotImplemented
+	def isdir(self, fn): raise NotImplemented
+	def listdir(self, fn): raise NotImplemented
+
+	def makedirs(self, fn):
+		splitted = fn.split("/")
+		for i in range(1, len(splitted)+1):
+			d = splitted[0:i]
+			if not self.exists(d) or not self.isdir(d):
+				self.mkdir(d)
+	def rmtree(self, fn):
+		if self.isdir(fn):
+			for f in self.listdir(fn):
+				self.rmtree(fn + "/" + f)
+		else:
+			self.remove(fn)
+	def glob(self, pattern):
+		from fnmatch import fnmatch
+		splitted = pattern.split("/")
+		def _glob(basedir, patternlist):
+			basepattern = patternlist[0]
+			rest = patternlist[1:]
+			if "*" in basepattern or "?" in basepattern:
+				l = []
+				for f in self.listdir(basedir + "/."):
+					if fnmatch(f, basepattern):
+						if rest:
+							l += _glob(basedir + f + "/", rest)
+						else:
+							l += [basedir + f]
+				return l
+			else: # basepattern not a pattern
+				if not self.exists(basedir + basepattern): return []
+				if rest:
+					return _glob(basedir + basepattern + "/", rest)
+				else:
+					return [basedir + basepattern]
+		return _glob("", splitted)
+	def dirname(self, fn):
+		import os
+		return os.path.dirname(fn)
+	def basename(self, fn):
+		import os
+		return os.path.basename(fn)		
+		
+class LocalFS(FS):
+	import os
+	def __init__(self, basedir): self.basedir = basedir
+	def open(self, fn): return open(self.basedir + "/" + fn)
+	def openW(self, fn): return open(self.basedir + "/" + fn, "w")
+	def remove(self, fn): return self.os.remove(self.basedir + "/" + fn)
+	def mkdir(self, fn): self.os.mkdir(self.basedir + "/" + fn)
+	def exists(self, fn): return self.os.path.exists(self.basedir + "/" + fn)
+	def isdir(self, fn): return self.os.path.isdir(self.basedir + "/" + fn)
+	def listdir(self, fn): return self.os.listdir(self.basedir + "/" + fn)
+	
+fs = None
 localDev = None
 
 def checkDropbox():
+	import os
 	assert os.path.exists(os.path.expanduser("~/Dropbox"))
 
 def setup(appid, _localDev):
-	global basedirs, localDev
+	global fs, localDev
 	checkDropbox()
-	basedirs = [os.path.expanduser("~") + "/Dropbox/.AppCommunication/" + appid]
+	import os
+	fs = LocalFS(os.path.expanduser("~") + "/Dropbox/.AppCommunication/" + appid)
 	localDev = _localDev
 	
-def findFn(fn):
-	for d in basedirs:
-		if os.path.exists(d + "/" + fn):
-			return d + "/" + fn
-	return None
-
-def baseDirFor(fn):
-	for d in basedirs:
-		if os.path.exists(d + "/" + fn):
-			return d
-	return None
-
-def multiglob(pattern):
-	l = []
-	for d in basedirs:
-		l += glob(d + "/" + pattern)
-	return l
-
-def existsFn(fn):
-	return bool(baseDirFor(fn))
-
 class Dev:
 	def __init__(self, devId, publicKeys=None):
 		self.devId = devId
@@ -49,11 +89,11 @@ class Dev:
 	
 	def __getattr__(self, key):
 		if key == "publicKeys":
-			self.publicKeys = readPublicKeys(findFn(self.devId + "/publicKeys"))
+			self.publicKeys = readPublicKeys(self.devId + "/publicKeys")
 			return self.publicKeys
 		if key in ("type", "appInfo"):
 			value = binstruct.readDecrypt(
-				findFn(self.devId + "/" + key),
+				fs.open(self.devId + "/" + key),
 				verifysign_rsapubkey = self.publicKeys.sign)
 			setattr(self, key, value)
 			return value
@@ -73,29 +113,29 @@ class Dev:
 	def connections(self): # from the server-side
 		r = re.compile("^.*/messages-(to|from)-(.*)/channel-([A-Za-z0-9]+)-(.*)$")
 		conns = set()
-		for d in multiglob(self.devId + "/messages-*/channel-*"):
+		for d in fs.glob(self.devId + "/messages-*/channel-*"):
 			m = r.match(d)
 			if not m:
 				print "strange msg dir:", d
-				shutil.rmtree(d)
+				fs.rmtree(d)
 				continue
 			msgDir,msgDevId,connIdNr,connTag = m.groups()
 			conns.add((msgDevId,connIdNr))
 		for msgDevId,connIdNr in conns:
-			if not multiglob(msgDevId):
+			if not fs.glob(msgDevId):
 				print "strange dev src, not existing:", msgDevId
-				for f in multiglob(self.devId + "/messages-*-" + msgDevId):
-					shutil.rmtree(f)
+				for f in fs.glob(self.devId + "/messages-*-" + msgDevId):
+					fs.rmtree(f)
 				continue
-			if not multiglob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-*"):
+			if not fs.glob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-*"):
 				print msgDevId + "/channel-" + connIdNr + " has no msgs-from"
-				for f in multiglob(self.devId + "/messages-to-" + msgDevId + "/channel-" + connIdNr + "-*"):
-					os.remove(f)
+				for f in fs.glob(self.devId + "/messages-to-" + msgDevId + "/channel-" + connIdNr + "-*"):
+					fs.remove(f)
 				continue
-			if not multiglob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-init"):
+			if not fs.glob(self.devId + "/messages-from-" + msgDevId + "/channel-" + connIdNr + "-init"):
 				print msgDevId + "/channel-" + connIdNr + " has no init"
-				for f in multiglob(self.devId + "/messages-*-" + msgDevId + "/channel-" + connIdNr + "-*"):
-					os.remove(f)
+				for f in fs.glob(self.devId + "/messages-*-" + msgDevId + "/channel-" + connIdNr + "-*"):
+					fs.remove(f)
 				continue			
 			connId = "channel-" + connIdNr
 			sourceDevId = msgDevId
@@ -108,16 +148,16 @@ class Dev:
 
 	def connectFrom(self, srcDev, connData):
 		assert "intent" in connData
-		connd = basedirs[0] + "/" + self.devId + "/messages-from-" + srcDev.devId
-		try: os.mkdir(connd)
+		connd = self.devId + "/messages-from-" + srcDev.devId
+		try: fs.mkdir(connd)
 		except: pass # might exist
 		connIdNum = LRndSeq()
 		for i in itertools.count(4):
 			connId = "channel-" + connIdNum[:i]
 			channelfn = connd + "/" + connId + "-init"
-			if os.path.exists(channelfn): continue
+			if fs.exists(channelfn): continue
 			binstruct.writeEncrypt(
-				channelfn, connData,
+				fs.openW(channelfn), connData,
 				encrypt_rsapubkey = self.publicKeys.crypt,
 				sign_rsaprivkey = srcDev.privateKeys.sign)
 			return Conn(self, srcDev, connId, isClient=True)
@@ -205,12 +245,12 @@ def registerDev(dev):
 	devId = longDevId[:longestCommonDevId+1]
 	
 	# create new
-	devdir = basedirs[0] + "/" + devId
-	os.makedirs(devdir)
-	binstruct.write(devdir + "/publicKeys", dev["publicKeys"])
+	devdir = devId
+	fs.makedirs(devdir)
+	binstruct.write(fs.openW(devdir + "/publicKeys"), dev["publicKeys"])
 	for key in ("appInfo","type"):
 		binstruct.writeEncrypt(
-			devdir + "/" + key, dev[key],
+			fs.openW(devdir + "/" + key), dev[key],
 			sign_rsaprivkey = dev["privateKeys"]["sign"])
 	newdev = Dev(devId, binstruct.Dict(dev["publicKeys"]))
 	for key,value in dev.items():
@@ -227,13 +267,12 @@ class Conn:
 		self.srcDev = srcDev
 		self.connId = connId
 		self.isClient = isClient
-		self.baseDir = baseDirFor(self.initFn())
 		if isClient:
 			assert srcDev == localDev
 			self.firstTime = self.clientFirstTime()
 		else:
 			assert dstDev == localDev			
-			self.connData = self.readFileSrcToDst(findFn(self.initFn()))
+			self.connData = self.readFileSrcToDst(self.initFn())
 			self.firstTime = self.serverFirstTime()
 		self.srcToDstSeqnr = 1
 		self.dstToSrcSeqnr = 1
@@ -241,34 +280,34 @@ class Conn:
 		return self.dstDev.devId + "/messages-from-" + self.srcDev.devId + "/" + self.connId
 	def dstToSrcPrefixFn(self):
 		return self.dstDev.devId + "/messages-to-" + self.srcDev.devId + "/" + self.connId
-	def readFileSrcToDst(self, fullfn):
+	def readFileSrcToDst(self, fn):
 		global localDev
 		assert self.dstDev == localDev
 		dstPrivKey = localDev.privateKeys.crypt
 		srcPubKey = self.srcDev.publicKeys.sign
-		return binstruct.readDecrypt(fullfn, dstPrivKey, srcPubKey)
-	def readFileDstToSrc(self, fullfn):
+		return binstruct.readDecrypt(fs.open(fn), dstPrivKey, srcPubKey)
+	def readFileDstToSrc(self, fn):
 		global localDev
 		assert self.srcDev == localDev
 		srcPrivKey = localDev.privateKeys.crypt
 		dstPubKey = self.dstDev.publicKeys.sign
-		return binstruct.readDecrypt(fullfn, srcPrivKey, dstPubKey)
-	def writeFileDstToSrc(self, fullfn, v):
+		return binstruct.readDecrypt(fs.open(fn), srcPrivKey, dstPubKey)
+	def writeFileDstToSrc(self, fn, v):
 		global localDev
 		assert self.dstDev == localDev
-		try: os.mkdir(os.path.dirname(fullfn))
+		try: fs.mkdir(fs.dirname(fn))
 		except: pass # already existing. or so. we would fail anyway later
 		srcPubKey = self.srcDev.publicKeys.crypt
 		dstPrivKey = localDev.privateKeys.sign
-		return binstruct.writeEncrypt(fullfn, v, srcPubKey, dstPrivKey)
-	def writeFileSrcToDst(self, fullfn, v):
+		return binstruct.writeEncrypt(fs.openW(fn), v, srcPubKey, dstPrivKey)
+	def writeFileSrcToDst(self, fn, v):
 		global localDev
 		assert self.srcDev == localDev
 		dstPubKey = self.dstDev.publicKeys.crypt
 		srcPrivKey = localDev.privateKeys.sign
-		return binstruct.writeEncrypt(fullfn, v, dstPubKey, srcPrivKey)
-	def verifyFile(self, fullfn, pubkey):
-		binstruct.verifyFile(fullfn, pubkey)
+		return binstruct.writeEncrypt(fs.openW(fn), v, dstPubKey, srcPrivKey)
+	def verifyFile(self, fn, pubkey):
+		binstruct.verifyFile(fs.open(fn), pubkey)
 	def initFn(self):
 		return self.srcToDstPrefixFn() + "-init"
 	def ackFn(self):
@@ -277,52 +316,52 @@ class Conn:
 		return self.srcToDstPrefixFn() + "-refused"
 	def clientFirstTime(self):
 		assert self.srcDev == localDev
-		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-clientFirstTime"
+		fn = self.srcToDstPrefixFn() + "-clientFirstTime"
 		return self.updateFirstTime(fn, self.srcDev.privateKeys.sign, self.srcDev.publicKeys.sign)
 	def serverFirstTime(self):
 		assert self.dstDev == localDev
-		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-serverFirstTime"
+		fn = self.srcToDstPrefixFn() + "-serverFirstTime"
 		return self.updateFirstTime(fn, self.dstDev.privateKeys.sign, self.dstDev.publicKeys.sign)
-	def updateFirstTime(self, fullfn, privSignKey, pubSignKey):
-		try: v = binstruct.readDecrypt(fullfn, verifysign_rsapubkey=pubSignKey)
+	def updateFirstTime(self, fn, privSignKey, pubSignKey):
+		try: v = binstruct.readDecrypt(fs.open(fn), verifysign_rsapubkey=pubSignKey)
 		except IOError: v = None
 		if v is None or time.time() < v:
 			v = time.time()
-			binstruct.writeEncrypt(fullfn, v, sign_rsaprivkey=privSignKey)
+			binstruct.writeEncrypt(fs.openW(fn), v, sign_rsaprivkey=privSignKey)
 		return v
 
 	def accept(self):
 		if self.isClient: f = self.writeFileSrcToDst
 		else: f = self.writeFileDstToSrc
-		f(self.baseDir + "/" + self.ackFn(), True)
+		f(self.ackFn(), True)
 	def refuse(self, reason):
-		fullfn = self.baseDir + "/" + self.refusedFn()
 		if self.isClient: f = self.writeFileSrcToDst
 		else: f = self.writeFileDstToSrc
-		f(fullfn, {"reason":reason})
+		f(self.refusedFn(), {"reason":reason})
 	def isAwaiting(self):
 		return not self.isAccepted() and not self.isRefused()
 	def isAccepted(self):
-		exAck = os.path.exists(self.baseDir + "/" + self.ackFn())
-		if exAck: self.verifyFile(self.baseDir + "/" + self.ackFn(), self.dstDev.publicKeys.sign)
+		exAck = fs.exists(self.ackFn())
+		if exAck: self.verifyFile(self.ackFn(), self.dstDev.publicKeys.sign)
 		return exAck
 	def isRefused(self):
-		exRefused = os.path.exists(self.baseDir + "/" + self.refusedFn())
-		if exRefused: self.verifyFile(self.baseDir + "/" + self.refusedFn(), self.dstDev.publicKeys.sign)
+		exRefused = fs.exists(self.refusedFn())
+		if exRefused: self.verifyFile(self.refusedFn(), self.dstDev.publicKeys.sign)
 		return exRefused		
 	def close(self, reason=None):
 		if self.isClient:
-			self.writeFileSrcToDst(self.baseDir + "/" + self.srcToDstPrefixFn() + "-close", {"reason":reason})
+			self.writeFileSrcToDst(self.srcToDstPrefixFn() + "-close", {"reason":reason})
 			return # cleanup will all be done by server
-		for fn in glob(self.baseDir + "/" + self.dstDev.devId + "/messages-*-" + self.srcDev.devId + "/" + self.connId + "-*"):
-			os.remove(fn)
+		for fn in fs.glob(self.dstDev.devId + "/messages-*-" + self.srcDev.devId + "/" + self.connId + "-*"):
+			fs.remove(fn)
 	def isOpen(self):
-		fn = findFn(self.initFn())
-		if fn: self.verifyFile(fn, self.srcDev.publicKeys.sign)
-		return bool(fn)
+		if fs.exists(self.initFn()):
+			self.verifyFile(self.initFn(), self.srcDev.publicKeys.sign)
+			return True
+		return False
 	def hasCloseRequest(self):
-		fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-close"
-		if os.path.exists(fn):
+		fn = self.srcToDstPrefixFn() + "-close"
+		if fs.exists(fn):
 			self.verifyFile(fn, self.srcDev.publicKeys.sign)
 			return True
 		return False
@@ -335,12 +374,12 @@ class Conn:
 			else: self.srcToDstSeqnr += 1
 		while True:
 			if self.isClient:
-				fn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
+				fn = self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
 			else:
-				fn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
-			if not os.path.exists(fn): break
+				fn = self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			if not fs.exists(fn): break
 			ackFn = fn + "-ack"
-			if os.path.exists(ackFn):
+			if fs.exists(ackFn):
 				incSeqNr()
 				continue
 			pkg = binstruct.Dict()
@@ -357,16 +396,16 @@ class Conn:
 
 	def sendPackage(self, pkg):
 		if self.isClient:
-			fullfn = self.baseDir + "/" + self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
-			self.writeFileSrcToDst(fullfn, pkg)
+			fn = self.srcToDstPrefixFn() + "-" + str(self.srcToDstSeqnr)
+			self.writeFileSrcToDst(fn, pkg)
 			self.srcToDstSeqnr += 1
 		else:
-			fullfn = self.baseDir + "/" + self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
-			self.writeFileDstToSrc(fullfn, pkg)
+			fn = self.dstToSrcPrefixFn() + "-" + str(self.dstToSrcSeqnr)
+			self.writeFileDstToSrc(fn, pkg)
 			self.dstToSrcSeqnr += 1
 		
 def readPublicKeys(fn):
-	keys = binstruct.read(fn)
+	keys = binstruct.read(fs.open(fn))
 	assert isinstance(keys, dict)
 	assert "crypt" in keys
 	assert "sign" in keys
@@ -374,17 +413,14 @@ def readPublicKeys(fn):
 
 def devices():
 	devs = set()
-	for basedir in basedirs:
-		try: devdirs = os.listdir(basedir)
-		except: continue
-		for devdir in devdirs:
-			devdir = basedir + "/" + devdir
-			keysFn = devdir + "/publicKeys"
-			if os.path.isdir(devdir) and os.path.exists(keysFn):
-				devId = os.path.basename(devdir)
-				publicKeys = readPublicKeys(keysFn)
-				d = Dev(devId, publicKeys)
-				devs.add(d)
+	devdirs = fs.listdir(".")
+	for devdir in devdirs:
+		keysFn = devdir + "/publicKeys"
+		if fs.isdir(devdir) and fs.exists(keysFn):
+			devId = fs.basename(devdir)
+			publicKeys = readPublicKeys(keysFn)
+			d = Dev(devId, publicKeys)
+			devs.add(d)
 	for d in devs:
 		yield d
 

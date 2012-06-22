@@ -122,7 +122,7 @@ class Client:
 				from StringIO import StringIO
 				self.stream = StringIO()
 			def write(self, data):
-				self.stream.write(data)
+				return self.stream.write(data)
 			def close(self):
 				cself.api_client.put_file(fn, self.stream)
 			def __del__(self):

@@ -18,7 +18,7 @@ class FS:
 	def makedirs(self, fn):
 		splitted = fn.split("/")
 		for i in range(1, len(splitted)+1):
-			d = splitted[0:i]
+			d = "/".join(splitted[0:i])
 			if not self.exists(d) or not self.isdir(d):
 				self.mkdir(d)
 	def rmtree(self, fn):
@@ -66,20 +66,36 @@ class LocalFS(FS):
 	def exists(self, fn): return self.os.path.exists(self.basedir + "/" + fn)
 	def isdir(self, fn): return self.os.path.isdir(self.basedir + "/" + fn)
 	def listdir(self, fn): return self.os.listdir(self.basedir + "/" + fn)
-	
+
+class DropboxFS(FS):
+	def __init__(self, basedir):
+		self.basedir = basedir
+		
+		import dropboxfs
+		self.dropboxClient = dropboxfs.Client()
+		
+		for fn in ["open","openW","remove","mkdir","exists","isdir","listdir"]:
+			f = getattr(self.dropboxClient, fn)
+			def func_wrapper(fn):
+				return f(self.basedir + "/" + fn)
+			setattr(self, fn, func_wrapper)
+
 fs = None
 localDev = None
 
-def checkDropbox():
+def checkLocalDropbox():
 	import os
 	assert os.path.exists(os.path.expanduser("~/Dropbox"))
 
-def setup(appid, _localDev):
+def setup(appid, _localDev, useDropboxOnline=True):
 	global fs, localDev
-	checkDropbox()
-	import os
-	fs = LocalFS(os.path.expanduser("~") + "/Dropbox/.AppCommunication/" + appid)
 	localDev = _localDev
+	if useDropboxOnline:
+		fs = DropboxFS(".AppCommunication/" + appid)
+	else:
+		checkLocalDropbox()
+		import os
+		fs = LocalFS(os.path.expanduser("~") + "/Dropbox/.AppCommunication/" + appid)
 	
 class Dev:
 	def __init__(self, devId, publicKeys=None):

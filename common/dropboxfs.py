@@ -112,10 +112,13 @@ class Client:
 				raise
 		
 	def open(self, fn):
-		f, metadata = self.api_client.get_file_and_metadata(fn)
-		#print 'Metadata:', metadata
-		return f.read()
-
+		try:
+			f, metadata = self.api_client.get_file_and_metadata(fn)
+			#print 'Metadata:', metadata
+			return f
+		except Exception, e:
+			raise IOError(e)
+			
 	def openW(cself, fn):
 		class Stream:
 			def __init__(self):
@@ -123,10 +126,11 @@ class Client:
 				self.stream = StringIO()
 			def write(self, data):
 				return self.stream.write(data)
-			def close(self):
+			def close(self):				
 				cself.api_client.put_file(fn, self.stream)
+				self.stream = None
 			def __del__(self):
-				self.close()
+				if self.stream: self.close()
 		return Stream()
 
 	def remove(self, fn): self.api_client.file_delete(fn)

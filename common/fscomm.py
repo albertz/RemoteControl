@@ -73,13 +73,17 @@ class DropboxFS(FS):
 		
 		import dropboxfs
 		self.dropboxClient = dropboxfs.Client()
+
+		def get_func_wrapper(fn):
+			f = getattr(self.dropboxClient, fn)
+			def func_wrapper(filename):
+				print "called func wrapper", fn, filename
+				return f(self.basedir + "/" + filename)			
+			return func_wrapper
 		
 		for fn in ["open","openW","remove","mkdir","exists","isdir","listdir"]:
-			f = getattr(self.dropboxClient, fn)
-			def func_wrapper(fn):
-				return f(self.basedir + "/" + fn)
-			setattr(self, fn, func_wrapper)
-
+			setattr(self, fn, get_func_wrapper(fn))
+			
 fs = None
 localDev = None
 
@@ -175,7 +179,7 @@ class Dev:
 			binstruct.writeEncrypt(
 				fs.openW(channelfn), connData,
 				encrypt_rsapubkey = self.publicKeys.crypt,
-				sign_rsaprivkey = srcDev.privateKeys.sign)
+				sign_rsaprivkey = srcDev.privateKeys.sign).close()
 			return Conn(self, srcDev, connId, isClient=True)
 
 def commonStrLen(*args):
@@ -263,7 +267,7 @@ def registerDev(dev):
 	# create new
 	devdir = devId
 	fs.makedirs(devdir)
-	binstruct.write(fs.openW(devdir + "/publicKeys"), dev["publicKeys"])
+	binstruct.write(fs.openW(devdir + "/publicKeys"), dev["publicKeys"]).close()
 	for key in ("appInfo","type"):
 		binstruct.writeEncrypt(
 			fs.openW(devdir + "/" + key), dev[key],
@@ -315,13 +319,13 @@ class Conn:
 		except: pass # already existing. or so. we would fail anyway later
 		srcPubKey = self.srcDev.publicKeys.crypt
 		dstPrivKey = localDev.privateKeys.sign
-		return binstruct.writeEncrypt(fs.openW(fn), v, srcPubKey, dstPrivKey)
+		binstruct.writeEncrypt(fs.openW(fn), v, srcPubKey, dstPrivKey).close()
 	def writeFileSrcToDst(self, fn, v):
 		global localDev
 		assert self.srcDev == localDev
 		dstPubKey = self.dstDev.publicKeys.crypt
 		srcPrivKey = localDev.privateKeys.sign
-		return binstruct.writeEncrypt(fs.openW(fn), v, dstPubKey, srcPrivKey)
+		binstruct.writeEncrypt(fs.openW(fn), v, dstPubKey, srcPrivKey).close()
 	def verifyFile(self, fn, pubkey):
 		binstruct.verifyFile(fs.open(fn), pubkey)
 	def initFn(self):
@@ -343,7 +347,7 @@ class Conn:
 		except IOError: v = None
 		if v is None or time.time() < v:
 			v = time.time()
-			binstruct.writeEncrypt(fs.openW(fn), v, sign_rsaprivkey=privSignKey)
+			binstruct.writeEncrypt(fs.openW(fn), v, sign_rsaprivkey=privSignKey).close()
 		return v
 
 	def accept(self):

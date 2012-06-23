@@ -29,10 +29,6 @@
 		235B5422132E888100E87772 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 235B5420132E888100E87772 /* InfoPlist.strings */; };
 		235B5425132E888100E87772 /* RemoteControlTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 235B5424132E888100E87772 /* RemoteControlTests.h */; };
 		235B5427132E888100E87772 /* RemoteControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5426132E888100E87772 /* RemoteControlTests.m */; };
-		23E720C9159566D700614AB1 /* client in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C5159566D700614AB1 /* client */; };
-		23E720CA159566D700614AB1 /* common in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C6159566D700614AB1 /* common */; };
-		23E720CB159566D700614AB1 /* pydata in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C7159566D700614AB1 /* pydata */; };
-		23E720CC159566D700614AB1 /* server in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C8159566D700614AB1 /* server */; };
 		23E720CD159566E000614AB1 /* client in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C5159566D700614AB1 /* client */; };
 		23E720CE159566E000614AB1 /* common in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C6159566D700614AB1 /* common */; };
 		23E720CF159566E000614AB1 /* pydata in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C7159566D700614AB1 /* pydata */; };
@@ -355,10 +351,6 @@
 				235B5405132E888000E87772 /* MainWindow.xib in Resources */,
 				235B540E132E888000E87772 /* FirstView.xib in Resources */,
 				235B5411132E888100E87772 /* SecondView.xib in Resources */,
-				23E720C9159566D700614AB1 /* client in Resources */,
-				23E720CA159566D700614AB1 /* common in Resources */,
-				23E720CB159566D700614AB1 /* pydata in Resources */,
-				23E720CC159566D700614AB1 /* server in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -77,7 +77,7 @@ class DropboxFS(FS):
 		def get_func_wrapper(fn):
 			f = getattr(self.dropboxClient, fn)
 			def func_wrapper(filename):
-				print "called func wrapper", fn, filename
+				#print "called func wrapper", fn, filename
 				return f(self.basedir + "/" + filename)			
 			return func_wrapper
 		
@@ -182,6 +182,23 @@ class Dev:
 				sign_rsaprivkey = srcDev.privateKeys.sign).close()
 			return Conn(self, srcDev, connId, isClient=True)
 
+	def storeData(self, srcDev, fn, data):
+		datad = self.devId + "/data-from-" + srcDev.devId
+		try: fs.mkdir(datad)
+		except: pass
+		binstruct.writeEncrypt(
+			fs.openW(datad + "/" + fn), data,
+			encrypt_rsapubkey = self.publicKeys.crypt,
+			sign_rsaprivkey = srcDev.privateKeys.sign).close()
+	
+	def loadData(self, srcDev, fn):
+		datad = self.devId + "/data-from-" + srcDev.devId
+		return binstruct.readDecrypt(
+			fs.open(datad + "/" + fn),
+			decrypt_rsaprivkey = self.privateKeys.crypt,
+			verifysign_rsapubkey = srcDev.publicKeys.sign)
+		
+	
 def commonStrLen(*args):
 	c = 0
 	for cs in itertools.izip(*args):
@@ -449,7 +466,7 @@ def dev(publicKeys):
 
 def wait():
 	# stupid for now...
-	import time
+	import sys, time
 	try: time.sleep(2)
 	except KeyboardInterrupt: sys.exit(1)
 	# do pyinotify or so later...

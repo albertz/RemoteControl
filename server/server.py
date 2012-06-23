@@ -40,9 +40,10 @@ localDev.type = "RemoteControlServer"
 localDev.appInfo = {"appId":appid, "version":version}
 
 import fscomm
-fscomm.setup(appid, localDev)
+fscomm.setup(appid, localDev, useDropboxOnline=False)
 
 localDev = fscomm.registerDev(localDev)
+evalScopes = {} # dev -> dict
 
 import gui
 
@@ -85,8 +86,11 @@ def main():
 				print "got", repr(p), "from", c.srcDev
 				response = {}
 				response["seqnr"] = p.seqnr
+				evalScope = evalScopes.setdefault(c.srcDev, {
+					"srcDev":c.srcDev,
+					"dstDev":c.dstDev})
 				try:
-					ret = eval(p.data)
+					ret = eval(p.data, evalScope, evalScope)
 					response["ret"] = ret
 				except Exception as exc:
 					response["exception"] = repr(exc)

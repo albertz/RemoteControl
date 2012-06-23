@@ -80,8 +80,9 @@ def doControl(ctrl):
 		"'\\n\\nHIDPostAuxKey(NX_KEYTYPE_%s)'" % ctrl.upper() + \
 		", '<>', 'exec'))"
 	p = execRemotePy(execConn, pyCmd)
-	if "ret" in p["data"]: return True
-	else: return False
+	# only if we wait...
+	#if "ret" in p["data"]: return True
+	#else: return False
 	
 def main(arg):	
 	if doControl(arg, wait=True): print "success!"

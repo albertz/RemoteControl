@@ -16,6 +16,43 @@
 
 @synthesize tabBarController=_tabBarController;
 
+static PyObject *
+webbrowser_open(PyObject *self, PyObject *args)
+{
+    char *str;
+	
+    if (!PyArg_ParseTuple(args,
+						  "s;open requires a string",
+                          &str)) {
+		return NULL;
+    }
+	
+	printf("webbrowser iOS open '%s'\n", str);
+	
+	NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:str]];
+	[[UIApplication sharedApplication] openURL:url];
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyDoc_STRVAR(webbrowser_open_doc, "open(url)");
+
+static PyMethodDef webbrowser_methods[] = {
+    {"open",           webbrowser_open, METH_VARARGS, webbrowser_open_doc},
+    {NULL,              NULL}           /* sentinel */
+};
+PyDoc_STRVAR(module_doc, "iOS specific webbrowser module");
+
+void initioswebbrowser(void) {
+    PyObject *m;
+	
+    /* Create the module and add the functions and documentation */
+    m = Py_InitModule3("webbrowser", webbrowser_methods, module_doc);
+    if (m == NULL)
+        return;
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 	// Override point for customization after application launch.
@@ -24,6 +61,7 @@
 	[self.window makeKeyAndVisible];
 
 	Py_SetProgramName((char*)[[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/"] UTF8String]);
+	PyImport_AppendInittab("webbrowser", initioswebbrowser);
 	Py_Initialize();
 	PyRun_SimpleString("print 'hello there'");
 	NSString* mainPyFile = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/py/client/client.py"];

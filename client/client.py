@@ -74,7 +74,7 @@ def doControl(ctrl):
 		"dstDev.loadData(srcDev, 'media_keys.py') + " + \
 		"'\\n\\nHIDPostAuxKey(NX_KEYTYPE_%s)'" % ctrl.upper() + \
 		", '<>', 'exec'))"
-	p = execRemotePy(conn, pyCmd)
+	p = execRemotePy(execConn, pyCmd)
 	if "ret" in p["data"]: return True
 	else: return False
 	
@@ -83,6 +83,6 @@ def main(arg):
 	else: print "failure"
 	
 if __name__ == '__main__':
-	pythonCmd = sys.argv[1] if len(sys.argv) > 1 else "''.join(map(chr,range(97,100)))"
-	main(pythonCmd)
-	
+	if hasattr(sys, "argv") and len(sys.argv) > 1:
+		pythonCmd = sys.argv[1]
+		main(pythonCmd)

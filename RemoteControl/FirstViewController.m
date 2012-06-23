@@ -7,7 +7,7 @@
 //
 
 #import "FirstViewController.h"
-
+#include "Python.h"
 
 @implementation FirstViewController
 
@@ -47,6 +47,11 @@
 - (void)dealloc
 {
     [super dealloc];
+}
+
+- (IBAction)playPressed
+{
+	PyRun_SimpleString("doControl('play')");
 }
 
 @end

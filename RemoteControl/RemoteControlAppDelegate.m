@@ -63,6 +63,7 @@ void initioswebbrowser(void) {
 	Py_SetProgramName((char*)[[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/"] UTF8String]);
 	PyImport_AppendInittab("webbrowser", initioswebbrowser);
 	Py_Initialize();
+
 	PyRun_SimpleString("print 'hello there'");
 	NSString* mainPyFile = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/py/client/client.py"];
 	FILE* fp = fopen([mainPyFile UTF8String], "r");

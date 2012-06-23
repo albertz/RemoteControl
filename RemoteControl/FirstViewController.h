@@ -10,7 +10,9 @@
 
 
 @interface FirstViewController : UIViewController {
-
+	IBOutlet UIButton* playButton;	
 }
+
+- (IBAction) playPressed;
 
 @end

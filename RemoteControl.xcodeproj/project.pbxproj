@@ -470,6 +470,7 @@
 				HEADER_SEARCH_PATHS = (
 					"../python-embedded/Python-2.7.3/Include",
 					"../python-embedded/pylib",
+					"../iOS-static-libs/iPhoneOS-V7-4.3/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				SDKROOT = iphoneos;
@@ -488,6 +489,7 @@
 				HEADER_SEARCH_PATHS = (
 					"../python-embedded/Python-2.7.3/Include",
 					"../python-embedded/pylib",
+					"../iOS-static-libs/iPhoneOS-V7-4.3/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
@@ -507,7 +509,9 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../python-embedded\"",
+					"../iOS-static-libs/iPhoneOS-V7-4.3/lib",
 				);
+				OTHER_LDFLAGS = "-lssl";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
@@ -526,7 +530,9 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../python-embedded\"",
+					"../iOS-static-libs/iPhoneOS-V7-4.3/lib",
 				);
+				OTHER_LDFLAGS = "-lssl";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;

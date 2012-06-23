@@ -50,15 +50,20 @@ def pushDataFile(fn):
 	# TODO check change-time if needed...
 	serverDev.storeData(localDev, fn, open(mydir + "/../pydata/" + fn).read())
 	
-def execRemotePy(conn, pythonCmd):
+def execRemotePy(conn, pythonCmd, wait=False):
 	conn.sendPackage(pythonCmd)
 	print "sent %r, waiting..." % pythonCmd
-	while True:
+
+	while wait:
 		for p in conn.readPackages():
 			print "got", repr(p), "from", conn.dstDev
 			return p
 		try: time.sleep(0.5)
 		except: sys.exit(1)
+	
+	if not wait:
+		# just read and skip if there are any...
+		for p in conn.readPackages(): pass
 
 print "update media_keys.py ..."
 pushDataFile("media_keys.py")
@@ -79,7 +84,7 @@ def doControl(ctrl):
 	else: return False
 	
 def main(arg):	
-	if doControl(arg): print "success!"
+	if doControl(arg, wait=True): print "success!"
 	else: print "failure"
 	
 if __name__ == '__main__':

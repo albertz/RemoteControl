@@ -20,6 +20,7 @@ from appinfo import *
 
 localDev = binstruct.Dict()
 
+print "easycfg setup ..."
 import easycfg
 easycfg.setup(userdir + "/client.cfg", globals(), ["localDev"])
 
@@ -32,9 +33,11 @@ if not localDev:
 localDev.type = "RemoteControlClient"
 localDev.appInfo = {"appId":appid, "version":version}
 
+print "fscomm setup ..."
 import fscomm
 fscomm.setup(appid, localDev)
 
+print "register local dev ..."
 localDev = fscomm.registerDev(localDev)
 
 serverDev = None
@@ -57,7 +60,10 @@ def execRemotePy(conn, pythonCmd):
 		try: time.sleep(0.5)
 		except: sys.exit(1)
 
+print "update media_keys.py ..."
 pushDataFile("media_keys.py")
+
+print "main connect ..."
 execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
 
 import atexit

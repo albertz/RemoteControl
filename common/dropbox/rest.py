@@ -5,13 +5,14 @@ dropbox.client and dropbox.session modules. You shouldn't need to use this.
 
 import httplib
 import os
-import pkg_resources
 import re
 import socket
 import ssl
 import sys
 import urllib
 import urlparse
+
+mydir = os.path.dirname(__file__)
 
 try:
     import json
@@ -20,7 +21,7 @@ except ImportError:
 
 SDK_VERSION = "1.4.1"
 
-TRUSTED_CERT_FILE = pkg_resources.resource_filename(__name__, 'trusted-certs.crt')
+TRUSTED_CERT_FILE = mydir + '/trusted-certs.crt'
 
 class ProperHTTPSConnection(httplib.HTTPConnection):
     """

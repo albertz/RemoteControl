@@ -1,5 +1,6 @@
 
 
+import appinfo
 from dropbox import client, rest, session
 
 # i don't really know how to make these secure...
@@ -59,7 +60,7 @@ class OAuthReturnHandler:
 
 class StoredSession(session.DropboxSession):
 	"""a wrapper around DropboxSession that stores a token to a file on disk"""
-	TOKEN_FILE = "token_store.txt"
+	TOKEN_FILE = appinfo.userdir + "/dropbox_session_token_store.txt"
 	
 	def load_creds(self):
 		try:

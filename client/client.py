@@ -52,7 +52,7 @@ def pushDataFile(fn):
 	
 def execRemotePy(conn, pythonCmd, wait=False):
 	conn.sendPackage(pythonCmd)
-	print "sent %r, waiting..." % pythonCmd
+	print "sent %r ..." % pythonCmd
 
 	while wait:
 		for p in conn.readPackages():
@@ -83,7 +83,10 @@ def doControl(ctrl):
 	# only if we wait...
 	#if "ret" in p["data"]: return True
 	#else: return False
-	
+
+def doReconnect():
+	execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
+
 def main(arg):	
 	if doControl(arg, wait=True): print "success!"
 	else: print "failure"

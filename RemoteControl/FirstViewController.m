@@ -54,5 +54,6 @@
 - (IBAction)nextPressed { PyRun_SimpleString("doControl('next')"); }
 - (IBAction)volUpPressed { PyRun_SimpleString("doControl('sound_up')"); }
 - (IBAction)volDownPressed { PyRun_SimpleString("doControl('sound_down')"); }
+- (IBAction)reconnectPressed { PyRun_SimpleString("doReconnect()"); }
 
 @end

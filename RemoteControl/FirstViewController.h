@@ -18,5 +18,6 @@
 - (IBAction) nextPressed;
 - (IBAction) volUpPressed;
 - (IBAction) volDownPressed;
+- (IBAction) reconnectPressed;
 
 @end

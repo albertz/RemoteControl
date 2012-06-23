@@ -29,6 +29,14 @@
 		235B5422132E888100E87772 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 235B5420132E888100E87772 /* InfoPlist.strings */; };
 		235B5425132E888100E87772 /* RemoteControlTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 235B5424132E888100E87772 /* RemoteControlTests.h */; };
 		235B5427132E888100E87772 /* RemoteControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 235B5426132E888100E87772 /* RemoteControlTests.m */; };
+		23E720C9159566D700614AB1 /* client in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C5159566D700614AB1 /* client */; };
+		23E720CA159566D700614AB1 /* common in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C6159566D700614AB1 /* common */; };
+		23E720CB159566D700614AB1 /* pydata in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C7159566D700614AB1 /* pydata */; };
+		23E720CC159566D700614AB1 /* server in Resources */ = {isa = PBXBuildFile; fileRef = 23E720C8159566D700614AB1 /* server */; };
+		23E720CD159566E000614AB1 /* client in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C5159566D700614AB1 /* client */; };
+		23E720CE159566E000614AB1 /* common in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C6159566D700614AB1 /* common */; };
+		23E720CF159566E000614AB1 /* pydata in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C7159566D700614AB1 /* pydata */; };
+		23E720D0159566E000614AB1 /* server in CopyFiles */ = {isa = PBXBuildFile; fileRef = 23E720C8159566D700614AB1 /* server */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +73,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23E720C21595668E00614AB1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = py;
+			dstSubfolderSpec = 7;
+			files = (
+				23E720CD159566E000614AB1 /* client in CopyFiles */,
+				23E720CE159566E000614AB1 /* common in CopyFiles */,
+				23E720CF159566E000614AB1 /* pydata in CopyFiles */,
+				23E720D0159566E000614AB1 /* server in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +119,10 @@
 		235B5426132E888100E87772 /* RemoteControlTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RemoteControlTests.m; sourceTree = "<group>"; };
 		235B548913362D7900E87772 /* Connection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Connection.cpp; sourceTree = "<group>"; };
 		235B548A13362D7900E87772 /* Connection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Connection.h; sourceTree = "<group>"; };
+		23E720C5159566D700614AB1 /* client */ = {isa = PBXFileReference; lastKnownFileType = folder; path = client; sourceTree = "<group>"; };
+		23E720C6159566D700614AB1 /* common */ = {isa = PBXFileReference; lastKnownFileType = folder; path = common; sourceTree = "<group>"; };
+		23E720C7159566D700614AB1 /* pydata */ = {isa = PBXFileReference; lastKnownFileType = folder; path = pydata; sourceTree = "<group>"; };
+		23E720C8159566D700614AB1 /* server */ = {isa = PBXFileReference; lastKnownFileType = folder; path = server; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +172,7 @@
 		235B53E2132E888000E87772 = {
 			isa = PBXGroup;
 			children = (
+				23E720C4159566C500614AB1 /* py */,
 				2320FCBD1592A23A0042F233 /* pylib */,
 				2320FC811592113E0042F233 /* libpython.a */,
 				235B548713362D7900E87772 /* src */,
@@ -241,6 +267,17 @@
 			path = common;
 			sourceTree = "<group>";
 		};
+		23E720C4159566C500614AB1 /* py */ = {
+			isa = PBXGroup;
+			children = (
+				23E720C5159566D700614AB1 /* client */,
+				23E720C6159566D700614AB1 /* common */,
+				23E720C7159566D700614AB1 /* pydata */,
+				23E720C8159566D700614AB1 /* server */,
+			);
+			name = py;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -253,6 +290,7 @@
 				235B53EB132E888000E87772 /* Resources */,
 				2320FC9515929F340042F233 /* Copy Files */,
 				2320FCA01592A10C0042F233 /* CopyFiles */,
+				23E720C21595668E00614AB1 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -317,6 +355,10 @@
 				235B5405132E888000E87772 /* MainWindow.xib in Resources */,
 				235B540E132E888000E87772 /* FirstView.xib in Resources */,
 				235B5411132E888100E87772 /* SecondView.xib in Resources */,
+				23E720C9159566D700614AB1 /* client in Resources */,
+				23E720CA159566D700614AB1 /* common in Resources */,
+				23E720CB159566D700614AB1 /* pydata in Resources */,
+				23E720CC159566D700614AB1 /* server in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

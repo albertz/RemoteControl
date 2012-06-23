@@ -126,9 +126,10 @@ class Client:
 				self.stream = StringIO()
 			def write(self, data):
 				return self.stream.write(data)
-			def close(self):				
-				cself.api_client.put_file(fn, self.stream)
+			def close(self):
+				s = self.stream
 				self.stream = None
+				cself.api_client.put_file(fn, s.getvalue(), overwrite = True)
 			def __del__(self):
 				if self.stream: self.close()
 		return Stream()
@@ -161,6 +162,10 @@ def test():
 	cl = Client()
 	from pprint import pprint
 	pprint(cl.listdir(".AppCommunication/com.albertzeyer.RemoteEverywhere"))
+	#cl.api_client.put_file("test.txt", open("common.sh"))
+	f = cl.openW("test.txt")
+	f.write("Hello")
+	f.close()
 	
 if __name__ == '__main__':
 	test()

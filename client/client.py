@@ -6,13 +6,14 @@
 import os, os.path, sys
 mydir = os.path.dirname(__file__) or os.getcwd()
 mydir = os.path.abspath(mydir)
+print "Hello from client."
+print "mydir:", mydir
 sys.path += [mydir + "/../common"]
 
 import better_exchook
 better_exchook.install()
 
 import datetime, time
-import ast, subprocess
 import re
 import binstruct
 from appinfo import *
@@ -36,6 +37,12 @@ fscomm.setup(appid, localDev)
 
 localDev = fscomm.registerDev(localDev)
 
+serverDev = None
+for d in fscomm.devices():
+	if d.type != "RemoteControlServer": continue
+	print "found server:", d
+	serverDev = d
+
 def pushDataFile(fn):
 	# TODO check change-time if needed...
 	serverDev.storeData(localDev, fn, open(mydir + "/../pydata/" + fn).read())
@@ -50,27 +57,24 @@ def execRemotePy(conn, pythonCmd):
 		try: time.sleep(0.5)
 		except: sys.exit(1)
 
-def main(arg):
-	global serverDev
-	serverDev = None
-	for d in fscomm.devices():
-		if d.type != "RemoteControlServer": continue
-		print "found server:", d
-		serverDev = d
-	
-	pushDataFile("media_keys.py")
-	conn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
-	
+pushDataFile("media_keys.py")
+execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
+
+import atexit
+atexit.register(lambda: execConn.close())
+
+def doControl(ctrl):
 	pyCmd = "eval(compile(" + \
 		"dstDev.loadData(srcDev, 'media_keys.py') + " + \
-		"'\\n\\nHIDPostAuxKey(NX_KEYTYPE_%s)'" % arg.upper() + \
+		"'\\n\\nHIDPostAuxKey(NX_KEYTYPE_%s)'" % ctrl.upper() + \
 		", '<>', 'exec'))"
 	p = execRemotePy(conn, pyCmd)
-	if "ret" in p["data"]: print "success!"
-	else: print "failure"
+	if "ret" in p["data"]: return True
+	else: return False
 	
-	conn.close()
-	print "finished"
+def main(arg):	
+	if doControl(arg): print "success!"
+	else: print "failure"
 	
 if __name__ == '__main__':
 	pythonCmd = sys.argv[1] if len(sys.argv) > 1 else "''.join(map(chr,range(97,100)))"

@@ -49,9 +49,10 @@
     [super dealloc];
 }
 
-- (IBAction)playPressed
-{
-	PyRun_SimpleString("doControl('play')");
-}
+- (IBAction)playPressed { PyRun_SimpleString("doControl('play')"); }
+- (IBAction)prevPressed { PyRun_SimpleString("doControl('previous')"); }
+- (IBAction)nextPressed { PyRun_SimpleString("doControl('next')"); }
+- (IBAction)volUpPressed { PyRun_SimpleString("doControl('sound_up')"); }
+- (IBAction)volDownPressed { PyRun_SimpleString("doControl('sound_down')"); }
 
 @end

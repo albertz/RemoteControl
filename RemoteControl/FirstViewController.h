@@ -10,9 +10,13 @@
 
 
 @interface FirstViewController : UIViewController {
-	IBOutlet UIButton* playButton;	
+	IBOutlet UIButton* playButton;
 }
 
 - (IBAction) playPressed;
+- (IBAction) prevPressed;
+- (IBAction) nextPressed;
+- (IBAction) volUpPressed;
+- (IBAction) volDownPressed;
 
 @end

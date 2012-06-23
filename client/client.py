@@ -85,6 +85,8 @@ def doControl(ctrl):
 	#else: return False
 
 def doReconnect():
+	global execConn
+	if execConn: execConn.close()
 	execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
 
 def main(arg):	

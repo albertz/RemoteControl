@@ -55,19 +55,16 @@ void initioswebbrowser(void) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+	Py_SetProgramName((char*)[[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/"] UTF8String]);
+	PyImport_AppendInittab("webbrowser", initioswebbrowser);
+	Py_Initialize();
+	
+	PyRun_SimpleString("print 'hello there'");
+
 	// Override point for customization after application launch.
 	// Add the tab bar controller's current view as a subview of the window
 	self.window.rootViewController = self.tabBarController;
 	[self.window makeKeyAndVisible];
-
-	Py_SetProgramName((char*)[[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/"] UTF8String]);
-	PyImport_AppendInittab("webbrowser", initioswebbrowser);
-	Py_Initialize();
-
-	PyRun_SimpleString("print 'hello there'");
-	NSString* mainPyFile = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/py/client/client.py"];
-	FILE* fp = fopen([mainPyFile UTF8String], "r");
-	PyRun_SimpleFile(fp, [mainPyFile UTF8String]);
 	
     return YES;
 }

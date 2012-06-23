@@ -11,13 +11,26 @@
 
 @implementation FirstViewController
 
-/*
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+	
+	printf("viewDidLoad\n");
+	[playButton setHidden:TRUE];
+
+	dispatch_queue_t backgroundQueue = dispatch_queue_create("loadPyton", 0);
+
+	dispatch_async(backgroundQueue, ^{
+		NSString* mainPyFile = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/py/client/client.py"];
+		FILE* fp = fopen([mainPyFile UTF8String], "r");
+		PyRun_SimpleFile(fp, [mainPyFile UTF8String]);
+		
+        dispatch_sync(dispatch_get_main_queue(), ^{
+			[playButton setHidden:FALSE];
+        });
+    });
 }
-*/
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {

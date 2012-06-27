@@ -83,7 +83,8 @@ def doReconnect():
 	global execConn
 	if execConn: execConn.close()
 	execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
-
+	print "connected!"
+	
 print "update media_keys.py ..."
 pushDataFile("media_keys.py")
 

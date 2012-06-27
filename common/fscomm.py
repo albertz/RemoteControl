@@ -111,7 +111,7 @@ class Dev:
 		if key == "publicKeys":
 			self.publicKeys = readPublicKeys(self.devId + "/publicKeys")
 			return self.publicKeys
-		if key in ("type", "appInfo"):
+		if key in ("type", "appInfo", "name"):
 			value = binstruct.readDecrypt(
 				fs.open(self.devId + "/" + key),
 				verifysign_rsapubkey = self.publicKeys.sign)
@@ -127,8 +127,7 @@ class Dev:
 		return cmp(self.publicKeys.sign, other.publicKeys.sign)
 
 	def user_string(self):
-		# TODO ...
-		return "Device " + self.devId
+		return "Device " + self.name
 
 	def connections(self): # from the server-side
 		r = re.compile("^.*/messages-(to|from)-(.*)/channel-([A-Za-z0-9]+)-(.*)$")
@@ -255,6 +254,11 @@ chars = map(chr, range(ord("a"), ord("z")) + range(ord("0"),ord("9")))
 rndChar = lambda: random.choice(chars)
 LRndSeq = lambda: LFSeq(rndChar)
 
+def localDevName():
+	import os
+	uname = os.uname()
+	return uname[1] + " on " + uname[0] + " " + uname[2] + " " + uname[4]
+
 def registerDev(dev):
 	"""returns existing matching Dev, if there is any
 	otherwise, it creates a new Dev"""
@@ -293,6 +297,9 @@ def registerDev(dev):
 	for key,value in dev.items():
 		if isinstance(value, dict): value = binstruct.Dict(value)
 		setattr(newdev, key, value)
+	binstruct.writeEncrypt(
+		fs.openW(devdir + "/name"), localDevName(),
+		sign_rsaprivkey = dev["privateKeys"]["sign"])
 	if localDev.publicKeys["sign"] == newdev.publicKeys["sign"]:
 		localDev = newdev
 	return newdev
@@ -306,13 +313,24 @@ class Conn:
 		self.isClient = isClient
 		if isClient:
 			assert srcDev == localDev
-			self.firstTime = self.clientFirstTime()
 		else:
 			assert dstDev == localDev			
-			self.connData = self.readFileSrcToDst(self.initFn())
-			self.firstTime = self.serverFirstTime()
 		self.srcToDstSeqnr = 1
 		self.dstToSrcSeqnr = 1
+	
+	def __getattr__(self, key):
+		if key == "firstTime":
+			if self.isClient:
+				self.firstTime = self.clientFirstTime()
+			else:
+				self.firstTime = self.serverFirstTime()
+			return self.firstTime
+		if key == "connData":
+			assert not self.isClient
+			self.connData = self.readFileSrcToDst(self.initFn())
+			return self.connData
+		raise AttributeError, repr(self) + " has no attrib " + repr(key)
+	
 	def srcToDstPrefixFn(self):
 		return self.dstDev.devId + "/messages-from-" + self.srcDev.devId + "/" + self.connId
 	def dstToSrcPrefixFn(self):

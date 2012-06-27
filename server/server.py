@@ -78,10 +78,18 @@ def main():
 			if c.hasCloseRequest():
 				c.close()
 				continue
-			if time.time() - c.firstTime > 60: # old enough to cleanup
-				c.close()
-				continue
+			#if time.time() - c.firstTime > 60: # old enough to cleanup
+			#	c.close("timeout")
+			#	continue
 			if not c.isAccepted(): continue
+			if c.srcDev.publicKeys.sign not in knownClientDevices:
+				print "unknown client issued connection"
+				c.close("unknown client")
+				continue
+			if not knownClientDevices[c.srcDev.publicKeys.sign]["allowAccess"]:
+				print "no access for", c.srcDev
+				c.close("no access")
+				continue
 			for p in c.readPackages():
 				print "got", repr(p), "from", c.srcDev
 				response = {}

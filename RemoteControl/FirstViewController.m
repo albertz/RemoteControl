@@ -11,20 +11,71 @@
 
 @implementation FirstViewController
 
+static FirstViewController* viewController;
+static NSMutableArray* pyOutputList;
+
+- (NSInteger)tableView:(UITableView *)tableView
+ numberOfRowsInSection:(NSInteger)section
+{
+	if(pyOutputList)
+		return [pyOutputList count];
+	else
+		return 0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView
+		 cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	
+	static NSString *SimpleTableIdentifier = @"SimpleTableIdentifier";
+	UITableViewCell *cell = [tableView
+							 dequeueReusableCellWithIdentifier:SimpleTableIdentifier];
+	if (cell == nil) {
+		cell = [[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault
+									  reuseIdentifier:SimpleTableIdentifier] autorelease];
+	}
+	
+	NSUInteger row = [indexPath row];
+	cell.textLabel.text = [pyOutputList objectAtIndex:row];
+	return cell;
+}
+
 static PyObject *
 stdout_callback(PyObject *self, PyObject *args)
 {
     char *str;
-	
-    if (!PyArg_ParseTuple(args,
-						  "s;stdout_callback requires a string",
-                          &str)) {
+    if (!PyArg_ParseTuple(args, "s;stdout_callback requires a string", &str))
 		return NULL;
-    }
-	
-	for (NSString* s in [[NSString stringWithUTF8String:str] componentsSeparatedByString:@"\n"]) {
-		printf("Py: %s\n", str);
-	}
+
+	dispatch_sync(dispatch_get_main_queue(), ^{
+
+		static NSMutableString* buffer = NULL;
+		if(buffer == NULL)
+			buffer = [[NSMutableString alloc] init];
+		int c = 0;
+		for (NSString* s in [[NSString stringWithUTF8String:str] componentsSeparatedByString:@"\n"]) {
+			if(c++ == 0) {
+				[buffer appendString:s];
+				continue;
+			}
+
+			printf("Py: %s\n", [buffer UTF8String]);
+			
+			[pyOutputList addObject:[NSString stringWithString:buffer]];
+			//[viewController->pyOutput reloadData];
+			UITableView* pyOutput = viewController->pyOutput;
+			
+			[pyOutput beginUpdates];
+			NSArray *indexPaths = [NSArray arrayWithObjects: 
+								   [NSIndexPath indexPathForRow:[pyOutputList count]-1 inSection:0],
+								   nil];
+			[pyOutput insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
+			[pyOutput endUpdates];
+			[pyOutput scrollToRowAtIndexPath:[indexPaths objectAtIndex:0] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+			
+			[buffer setString:s];
+		}
+	});
 	
     Py_INCREF(Py_None);
     return Py_None;
@@ -44,8 +95,8 @@ void initStdoutWrapper()
     PyObject *wrapperClass = PyClass_New(NULL, classDict, className);
     Py_DECREF(classDict);
     Py_DECREF(className);
-		
-	PyObject* wrapperObj = PyEval_CallFunction(wrapperClass, "");
+	
+	PyObject* wrapperObj = PyObject_CallFunctionObjArgs(wrapperClass, NULL);
     Py_DECREF(wrapperClass);
 
     /* add methods to object */
@@ -67,6 +118,10 @@ void initStdoutWrapper()
     [super viewDidLoad];
 	
 	printf("viewDidLoad\n");
+	
+	pyOutputList = [[NSMutableArray alloc] init];
+	viewController = self;
+	
 	initStdoutWrapper();
 	
 	UIActivityIndicatorView *date  = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(150, 150, 30, 30)];

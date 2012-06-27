@@ -9,8 +9,10 @@
 #import <UIKit/UIKit.h>
 
 
-@interface FirstViewController : UIViewController {
+@interface FirstViewController : UIViewController
+<UITableViewDataSource> {
 	IBOutlet UIButton* playButton;
+	IBOutlet UITableView* pyOutput;
 }
 
 - (IBAction) playPressed;

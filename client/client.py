@@ -65,12 +65,6 @@ def execRemotePy(conn, pythonCmd, wait=False):
 		# just read and skip if there are any...
 		for p in conn.readPackages(): pass
 
-print "update media_keys.py ..."
-pushDataFile("media_keys.py")
-
-print "main connect ..."
-execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
-
 import atexit
 atexit.register(lambda: execConn.close())
 
@@ -84,10 +78,17 @@ def doControl(ctrl):
 	#if "ret" in p["data"]: return True
 	#else: return False
 
+execConn = None
 def doReconnect():
 	global execConn
 	if execConn: execConn.close()
 	execConn = serverDev.connectFrom(localDev, {"intent":"PythonExec.1"})
+
+print "update media_keys.py ..."
+pushDataFile("media_keys.py")
+
+print "main connect ..."
+doReconnect()
 
 def main(arg):	
 	if doControl(arg, wait=True): print "success!"

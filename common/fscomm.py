@@ -331,6 +331,9 @@ class Conn:
 			return self.connData
 		raise AttributeError, repr(self) + " has no attrib " + repr(key)
 	
+	def __repr__(self):
+		return "<Conn %s; %r to %r>" % (self.connId, self.srcDev, self.dstDev)
+
 	def srcToDstPrefixFn(self):
 		return self.dstDev.devId + "/messages-from-" + self.srcDev.devId + "/" + self.connId
 	def dstToSrcPrefixFn(self):

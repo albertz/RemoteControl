@@ -13,6 +13,7 @@
 
 static FirstViewController* viewController;
 static NSMutableArray* pyOutputList;
+static dispatch_queue_t pythonDispatchQueue;
 
 - (NSInteger)tableView:(UITableView *)tableView
  numberOfRowsInSection:(NSInteger)section
@@ -121,19 +122,21 @@ void initStdoutWrapper()
 	
 	pyOutputList = [[NSMutableArray alloc] init];
 	viewController = self;
+	pythonDispatchQueue = dispatch_queue_create("python", 0);
 	
 	initStdoutWrapper();
 	
-	UIActivityIndicatorView *date  = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(150, 150, 30, 30)];
-	[date setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleGray];
-	[[self view] addSubview:date];
-	[date startAnimating];
-	
 
-	dispatch_queue_t backgroundQueue = dispatch_queue_create("loadPyton", 0);
+	dispatch_async(pythonDispatchQueue, ^{
+		UIActivityIndicatorView *date  = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(150, 150, 30, 30)];
+		[date setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleGray];
 
-	dispatch_async(backgroundQueue, ^{
-		[UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+			[UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+			[[self view] addSubview:date];
+			[date startAnimating];
+        });
+		
  		NSString* mainPyFile = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/py/client/client.py"];
 		FILE* fp = fopen([mainPyFile UTF8String], "r");
 		PyRun_SimpleFile(fp, [mainPyFile UTF8String]);
@@ -175,15 +178,29 @@ void initStdoutWrapper()
     [super dealloc];
 }
 
-void doPython(const char* cmd) {
-	[UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-	PyRun_SimpleString(cmd);
-	[UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+void doPython(NSString* cmd) {	
+	dispatch_async(pythonDispatchQueue, ^{
+		UIActivityIndicatorView *date  = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(150, 150, 30, 30)];
+		[date setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleGray];
+
+        dispatch_sync(dispatch_get_main_queue(), ^{
+			[UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+			[[viewController view] addSubview:date];
+			[date startAnimating];
+        });
+
+		PyRun_SimpleString([cmd UTF8String]);
+
+        dispatch_sync(dispatch_get_main_queue(), ^{
+			[date removeFromSuperview];
+			[UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+        });
+    });
 }
 
 void doControl(const char* action) {
 	NSString* pyCmd = [NSString stringWithFormat:@"doControl('%s')", action];
-	doPython([pyCmd UTF8String]);
+	doPython(pyCmd);
 }
 
 - (IBAction)playPressed { doControl("play"); }
@@ -191,6 +208,6 @@ void doControl(const char* action) {
 - (IBAction)nextPressed { doControl("next"); }
 - (IBAction)volUpPressed { doControl("sound_up"); }
 - (IBAction)volDownPressed { doControl("sound_down"); }
-- (IBAction)reconnectPressed { doPython("doReconnect()"); }
+- (IBAction)reconnectPressed { doPython(@"doReconnect()"); }
 
 @end

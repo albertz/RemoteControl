@@ -77,7 +77,7 @@ class DropboxFS(FS):
 		def get_func_wrapper(fn):
 			f = getattr(self.dropboxClient, fn)
 			def func_wrapper(filename):
-				#print "called func wrapper", fn, filename
+				print "DropboxFS", fn, filename
 				return f(self.basedir + "/" + filename)			
 			return func_wrapper
 		

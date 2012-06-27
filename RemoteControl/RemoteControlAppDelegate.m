@@ -30,8 +30,19 @@ webbrowser_open(PyObject *self, PyObject *args)
 	printf("webbrowser iOS open '%s'\n", str);
 	
 	NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:str]];
-	[[UIApplication sharedApplication] openURL:url];
+	//[[UIApplication sharedApplication] openURL:url];
 
+	
+	CGRect webFrame = CGRectMake(0.0, 0.0, 320.0, 460.0);
+	UIWebView *webView = [[UIWebView alloc] initWithFrame:webFrame];
+	[webView setBackgroundColor:[UIColor whiteColor]];
+ 	//NSURL *url = [NSURL URLWithString:@"http://google.com/?q=x"];
+	NSURLRequest *requestObj = [NSURLRequest requestWithURL:url];
+	[webView loadRequest:requestObj];
+	[[[UIApplication sharedApplication] keyWindow] addSubview:webView];
+	[webView release];
+	
+	
     Py_INCREF(Py_None);
     return Py_None;
 }

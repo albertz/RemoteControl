@@ -21,6 +21,14 @@ The [client](#client) setups the needed Python code on the server and executes a
 
 Every peer registers itself as a device. Every communication is encrypted and signed with RSA and AES. A device has a type (string) and provides its public keys for encryption and signature verification. Every device can manage a set of message channels/connections with data sent bidirectional.
 
+All serialization, the signing and encryption is done in the [`binstruct`](https://github.com/albertz/binstruct) module.
+
+All files and directories created for communication are below some root directory which is by default `~/Dropbox/.AppCommunication/${appid}/` for now, where `${appid}` is `com.albertzeyer.RemoteEverywhere` in this case.
+
+Every device gets its own directory `/dev-${devid}`. The file `publicKeys` in there defines the keys for signature verficitation and encryption. That is the only file which is not encrypted nor signed. There are the other files `name`, `appInfo` and `type` which are signed.
+
+Channel connections are initialized by creating a file `/dev-${target_devid}/messages-from-${source_devid}/channel-${channelid}-init` which includes the intent of the connection. That file is signed by the source and encrypted for the destination. Then, for each package, a subsequent numbered files are created. When they got received, a specific `ack`-file for each package is created. Details can be found in the [source](https://github.com/albertz/RemoteControl/blob/master/common/fscomm.py).
+
 
 ## [`server`](https://github.com/albertz/RemoteControl/blob/master/server/server.py)
 

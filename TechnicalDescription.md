@@ -6,7 +6,7 @@ This describes the technic behind the communication over the filesystem to accom
 
 ## Why?
 
-The intention is to use services such as [Dropbox](https://www.dropbox.com/) or [Google Drive](https://drive.google.com/). This has the advantage that an existing infrastructure which works good can be reused and this project doesn't need to introduce an own server infrastructure.
+The intention is to use services such as [Dropbox](https://www.dropbox.com/) or [Google Drive](https://drive.google.com/). This has the advantage that an existing infrastructure which works well can be reused and this project doesn't need to introduce an own server infrastructure.
 
 
 ## Overview
